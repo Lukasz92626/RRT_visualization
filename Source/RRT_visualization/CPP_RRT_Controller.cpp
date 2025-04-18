@@ -421,21 +421,31 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 		for (int i = 0; i < current->children.size(); ++i) {
 			node_queue.push(current->children[i]);
 		}
+		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z()));
+		FVector parent_posiotion = standard_position;
+		if(current->parent != nullptr)
+			parent_posiotion = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
 		switch (current->get_color()) {
 		case 0:
-			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, move_cord(FVector(current->get_x(), current->get_y(), current->get_z())), standard_rotation));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorTree, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_posiotion);
 			break;
 		case 1:
-			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, move_cord(FVector(current->get_x(), current->get_y(), current->get_z())), standard_rotation));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_posiotion);
 			break;
 		case 2:
-			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, move_cord(FVector(current->get_x(), current->get_y(), current->get_z())), standard_rotation));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, current_position, standard_rotation));
 			break;
 		case 3:
-			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, move_cord(FVector(current->get_x(), current->get_y(), current->get_z())), standard_rotation));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_posiotion);
 			break;
 		default:
-			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, move_cord(FVector(current->get_x(), current->get_y(), current->get_z())), standard_rotation));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
 			break;
 		}
 		node_queue.pop();
@@ -445,37 +455,6 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x()*0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
 		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
 	}
-	
-	//// Spawnujemy nowy actor z lini¹
-	//AActor* LineActor = GetWorld()->SpawnActor<AActor>();
-	//USplineComponent* NewSpline = NewObject<USplineComponent>(LineActor, TEXT("DynamicSpline"));
-	//NewSpline->RegisterComponent();
-
-	//// Ustawiamy punkty
-	//NewSpline->AddSplinePoint(move_cord(FVector(START_X, START_Y, START_Z)), ESplineCoordinateSpace::World);
-	//NewSpline->AddSplinePoint(move_cord(FVector(FINISH_X, FINISH_Y, FINISH_Z)), ESplineCoordinateSpace::World);
-
-	//NewSpline->SetUnselectedSplineSegmentColor(FLinearColor::Red);
-	//NewSpline->SetSelectedSplineSegmentColor(FLinearColor::Green);
-	//NewSpline->bShouldVisualizeScale = true;
-	//NewSpline->SetVisibility(true);
-
-	//// Ustawiamy typ linii na prost¹
-	//NewSpline->SetSplinePointType(0, ESplinePointType::Linear);
-	//NewSpline->SetSplinePointType(1, ESplinePointType::Linear);
-
-
-	//FVector Position(100.0f, 200.0f, 50.0f); // Pozycja XYZ
-	//FVector Dimensions(200.0f, 100.0f, 50.0f); // Wymiary: d³ugoœæ, szerokoœæ, wysokoœæ
-
-	//ACuboidActor* NewBox = GetWorld()->SpawnActor<ACuboidActor>(ACuboidActor::StaticClass(), move_cord(Position), FRotator::ZeroRotator);
-	//if (NewBox) {
-	//	UE_LOG(LogTemp, Warning, TEXT("NewBox exist."));
-	//	NewBox->SetBoxProperties(move_cord(Position), move_cord(Dimensions), FColor::Red);
-	//}
-	
-	//ACuboidActor* Box = GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(FINISH_X + 5, FINISH_Y + 5, FINISH_Z + 5)), standard_rotation);
-	//Box->SetBoxDimensions(FVector(200.f, 300.f, 150.f));
 }
 
 FVector ACPP_RRT_Controller::move_cord(FVector moving_vector) {
@@ -496,4 +475,9 @@ void ACPP_RRT_Controller::BeginPlay() {
 
 void ACPP_RRT_Controller::Tick(float DeltaTime) {
 
+}
+
+ACPP_RRT_Controller::ACPP_RRT_Controller() {
+	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
+	standard_position = FVector(0.0f, 0.0f, 0.0f);
 }
