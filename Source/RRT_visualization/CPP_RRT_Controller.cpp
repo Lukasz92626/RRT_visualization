@@ -469,12 +469,24 @@ void ACPP_RRT_Controller::BeginPlay() {
 
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
 
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 1.0f, false);
+	if (MainMenuUserWidget_Class) {
+		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
+		MainMenuInstance = CreateWidget<UMainMenu_UserWidget>(this, MainMenuUserWidget_Class);
+		if (MainMenuInstance) {
+			MainMenuInstance->AddToViewport();
+		}
+	}
+
+	//FTimerHandle TimerHandle;
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 1.0f, false);
 }
 
 void ACPP_RRT_Controller::Tick(float DeltaTime) {
-
+	if (MainMenuInstance->start) {
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
+		MainMenuInstance->reset();
+	}
 }
 
 ACPP_RRT_Controller::ACPP_RRT_Controller() {

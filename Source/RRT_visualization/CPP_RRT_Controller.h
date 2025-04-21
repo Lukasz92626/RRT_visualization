@@ -6,6 +6,7 @@
 #include "NodeActor.h"
 #include "CuboidActor.h"
 #include "LineActor.h"
+#include "MainMenu_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "CPP_RRT_Controller.generated.h"
@@ -24,6 +25,8 @@ public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
 
+	UMainMenu_UserWidget* MainMenuInstance;
+
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
 	TSubclassOf<ANodeActor> NodeActorPath;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
@@ -41,6 +44,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Line Actor")
 	TSubclassOf<ALineActor> LineActorPath;
 
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
+	TSubclassOf<UMainMenu_UserWidget> MainMenuUserWidget_Class;
+
 	FRotator standard_rotation; //standard rotation (0.0f, 0.0f, 0.0f)
 	FVector standard_position; //standard position (0.0f, 0.0f, 0.0f)
 
@@ -51,6 +57,7 @@ public:
 	void BeginPlay();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 	void start_RRT();
 	void draw_path(RRT* rrt_class);
 	FVector move_cord(FVector move_vector);
