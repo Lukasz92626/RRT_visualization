@@ -7,6 +7,7 @@
 #include "CuboidActor.h"
 #include "LineActor.h"
 #include "MainMenu_UserWidget.h"
+#include "Visualization_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "CPP_RRT_Controller.generated.h"
@@ -21,11 +22,13 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 {
 	GENERATED_BODY()
 
+	int nodes_path;
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
 
 	UMainMenu_UserWidget* MainMenuInstance;
+	UVisualization_UserWidget* VisualizationMenuInstance;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
 	TSubclassOf<ANodeActor> NodeActorPath;
@@ -46,6 +49,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
 	TSubclassOf<UMainMenu_UserWidget> MainMenuUserWidget_Class;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
+	TSubclassOf<UVisualization_UserWidget> VisualizationUserWidget_Class;
 
 	FRotator standard_rotation; //standard rotation (0.0f, 0.0f, 0.0f)
 	FVector standard_position; //standard position (0.0f, 0.0f, 0.0f)

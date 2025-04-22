@@ -1,0 +1,56 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h"
+#include "Components/Button.h"
+#include "Visualization_UserWidget.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class RRT_VISUALIZATION_API UVisualization_UserWidget : public UUserWidget
+{
+	GENERATED_BODY()
+	
+public:
+	bool exit;
+
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void reset();
+	UFUNCTION()
+	void click_exit();
+
+	void set_board_dimensions(double length, double width, double height);
+	void set_total_nodes(int num_nodes);
+	void set_total_obstacles(int num_obstacles);
+	void set_node_path(int num_nodes);
+	void set_path_length(double length);
+
+	//Board dimensions
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_LengthValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_WidthValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_HeightValue;
+
+	//Statistics
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_TotalNodesValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_TotalObstaclesValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_NodesPathValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_PathLengthValue;
+
+	//Button exit
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Button_Exit;
+};

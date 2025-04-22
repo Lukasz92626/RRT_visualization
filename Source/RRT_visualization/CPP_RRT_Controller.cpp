@@ -416,6 +416,7 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 
 	queue<Node*> node_queue; //queue with drawing nodes
 	node_queue.push(rrt_class->start);
+	nodes_path = 0;
 	while (!node_queue.empty()) {
 		Node* current = node_queue.front(); //current node
 		for (int i = 0; i < current->children.size(); ++i) {
@@ -435,6 +436,7 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, current_position, standard_rotation));
 			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
 			lines.Last()->SetLine(current_position, parent_posiotion);
+			++nodes_path;
 			break;
 		case 2:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, current_position, standard_rotation));
@@ -455,6 +457,13 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x()*0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
 		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
 	}
+
+	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
+
+	VisualizationMenuInstance->set_total_nodes(nodes.Num());
+	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
+	VisualizationMenuInstance->set_node_path(nodes_path);
+	VisualizationMenuInstance->set_path_length(1.1111);
 }
 
 FVector ACPP_RRT_Controller::move_cord(FVector moving_vector) {
@@ -468,6 +477,7 @@ void ACPP_RRT_Controller::BeginPlay() {
 	Super::BeginPlay();
 
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
+	nodes_path = 0;
 
 	if (MainMenuUserWidget_Class) {
 		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
@@ -475,6 +485,11 @@ void ACPP_RRT_Controller::BeginPlay() {
 		if (MainMenuInstance) {
 			MainMenuInstance->AddToViewport();
 		}
+	}
+
+	if (VisualizationUserWidget_Class) {
+		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
+		VisualizationMenuInstance = CreateWidget<UVisualization_UserWidget>(this, VisualizationUserWidget_Class);
 	}
 
 	//FTimerHandle TimerHandle;
@@ -486,6 +501,21 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
 		MainMenuInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		if (VisualizationMenuInstance) {
+			VisualizationMenuInstance->AddToViewport();
+			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	if (VisualizationMenuInstance->exit) {
+		MainMenuInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		if (MainMenuInstance) {
+			MainMenuInstance->AddToViewport();
+			MainMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
 	}
 }
 
