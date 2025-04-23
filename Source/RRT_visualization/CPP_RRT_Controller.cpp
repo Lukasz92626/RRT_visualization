@@ -324,6 +324,14 @@ public:
 		}
 	}
 
+	double path_lenght() {
+		double lenght = 0;
+		for (int i = 0; i < planned_path.size() - 1; ++i) {
+			lenght += distance(planned_path[i], planned_path[i + 1]);
+		}
+		return lenght;
+	}
+
 	void execute_rrt() {
 		bool is_finish = false; //contains bool information about distance to finish
 		int i = 0;
@@ -418,6 +426,7 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 	queue<Node*> node_queue; //queue with drawing nodes
 	node_queue.push(rrt_class->start);
 	nodes_path = 0;
+	//path_length = 0;
 	while (!node_queue.empty()) {
 		Node* current = node_queue.front(); //current node
 		for (int i = 0; i < current->children.size(); ++i) {
@@ -425,8 +434,10 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 		}
 		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z()));
 		FVector parent_posiotion = standard_position;
-		if(current->parent != nullptr)
+		if (current->parent != nullptr) {
 			parent_posiotion = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
+			//path_length += classic_rrt->distance(current, current->parent);
+		}
 		switch (current->get_color()) {
 		case 0:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
@@ -464,7 +475,7 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 	VisualizationMenuInstance->set_total_nodes(nodes.Num());
 	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
 	VisualizationMenuInstance->set_node_path(nodes_path);
-	VisualizationMenuInstance->set_path_length(1.1111);
+	VisualizationMenuInstance->set_path_length(classic_rrt->path_lenght());
 }
 
 void ACPP_RRT_Controller::clear_map(RRT* rrt_class) {
