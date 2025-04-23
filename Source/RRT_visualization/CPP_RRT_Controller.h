@@ -23,6 +23,7 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 	GENERATED_BODY()
 
 	int nodes_path;
+	RRT* classic_rrt; //classic RRT implementation class
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
@@ -65,5 +66,6 @@ public:
 
 	void start_RRT();
 	void draw_path(RRT* rrt_class);
+	void clear_map(RRT* rrt_class);
 	FVector move_cord(FVector move_vector);
 };

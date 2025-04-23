@@ -388,23 +388,24 @@ public:
 };
 
 void ACPP_RRT_Controller::start_RRT() {
-	RRT classic_rrt; //classic RRT implementation class
-	classic_rrt.cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
-	classic_rrt.cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
-	classic_rrt.cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
-	classic_rrt.cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
-	classic_rrt.cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
-	classic_rrt.cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
-	classic_rrt.cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
-	classic_rrt.cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
-	classic_rrt.cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
-	classic_rrt.cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
-	classic_rrt.cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
-	classic_rrt.cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
-	classic_rrt.cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+	delete classic_rrt;
+	classic_rrt = new RRT;
+	classic_rrt->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
+	classic_rrt->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
+	classic_rrt->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
+	classic_rrt->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
+	classic_rrt->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
+	classic_rrt->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
+	classic_rrt->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
+	classic_rrt->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
+	classic_rrt->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
+	classic_rrt->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
+	classic_rrt->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
+	classic_rrt->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
+	classic_rrt->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
 
-	classic_rrt.execute_rrt();
-	draw_path(&classic_rrt);
+	classic_rrt->execute_rrt();
+	draw_path(classic_rrt);
 }
 
 void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
@@ -466,6 +467,21 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 	VisualizationMenuInstance->set_path_length(1.1111);
 }
 
+void ACPP_RRT_Controller::clear_map(RRT* rrt_class) {
+	for (ANodeActor* current : nodes) {
+		current->Destroy();
+	}
+	nodes.Empty();
+	for (ACuboidActor* current : cuboids) {
+		current->Destroy();
+	}
+	cuboids.Empty();
+	for (ALineActor* current : lines) {
+		current->Destroy();
+	}
+	lines.Empty();
+}
+
 FVector ACPP_RRT_Controller::move_cord(FVector moving_vector) {
 	moving_vector[0] = moving_vector[0] * MOVEMENT;
 	moving_vector[1] = moving_vector[1] * MOVEMENT;
@@ -478,6 +494,13 @@ void ACPP_RRT_Controller::BeginPlay() {
 
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
 	nodes_path = 0;
+
+	bShowMouseCursor = true;
+
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(InputMode);
 
 	if (MainMenuUserWidget_Class) {
 		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
@@ -516,6 +539,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			MainMenuInstance->AddToViewport();
 			MainMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
+		clear_map(classic_rrt);
 	}
 }
 
