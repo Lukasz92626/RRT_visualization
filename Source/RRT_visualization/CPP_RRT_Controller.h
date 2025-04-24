@@ -8,6 +8,7 @@
 #include "LineActor.h"
 #include "MainMenu_UserWidget.h"
 #include "Visualization_UserWidget.h"
+#include "BoardType_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "CPP_RRT_Controller.generated.h"
@@ -30,7 +31,9 @@ public:
 
 	UMainMenu_UserWidget* MainMenuInstance;
 	UVisualization_UserWidget* VisualizationMenuInstance;
-
+	UBoardType_UserWidget* BoardTypeInstance;
+	
+	//Node actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
 	TSubclassOf<ANodeActor> NodeActorPath;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
@@ -40,18 +43,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
 	TSubclassOf<ANodeActor> NodeActorFinish;
 
+	//Cuboid actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Cuboid Actor")
 	TSubclassOf<ACuboidActor> CuboidActorObstacle;
-
+	
+	//Line actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Line Actor")
 	TSubclassOf<ALineActor> LineActorTree;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Line Actor")
 	TSubclassOf<ALineActor> LineActorPath;
 
+	//User widget
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
 	TSubclassOf<UMainMenu_UserWidget> MainMenuUserWidget_Class;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
 	TSubclassOf<UVisualization_UserWidget> VisualizationUserWidget_Class;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
+	TSubclassOf<UBoardType_UserWidget> BoardTypeUserWidget_Class;
 
 	FRotator standard_rotation; //standard rotation (0.0f, 0.0f, 0.0f)
 	FVector standard_position; //standard position (0.0f, 0.0f, 0.0f)
@@ -65,6 +73,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void start_RRT();
+	void start_random_map_RRT();
 	void draw_path(RRT* rrt_class);
 	void clear_map(RRT* rrt_class);
 	FVector move_cord(FVector move_vector);

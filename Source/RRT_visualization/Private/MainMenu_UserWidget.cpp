@@ -27,18 +27,18 @@ void UMainMenu_UserWidget::reset() {
 }
 
 void UMainMenu_UserWidget::click_start() {
-	UE_LOG(LogTemp, Warning, TEXT("Click Start in Main Menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked Start in Main Menu."));
 	start = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UMainMenu_UserWidget::click_credits() {
-	UE_LOG(LogTemp, Warning, TEXT("Click Credits in Main Menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked Credits in Main Menu."));
 	credits = true;
 }
 
 void UMainMenu_UserWidget::click_exit() {
-	UE_LOG(LogTemp, Warning, TEXT("Click Exit in Main Menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked Exit in Main Menu."));
 	if (GetWorld()->IsGameWorld()) {
 		FGenericPlatformMisc::RequestExit(false);
 	}

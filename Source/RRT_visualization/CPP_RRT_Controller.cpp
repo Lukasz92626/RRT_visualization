@@ -416,6 +416,27 @@ void ACPP_RRT_Controller::start_RRT() {
 	draw_path(classic_rrt);
 }
 
+void ACPP_RRT_Controller::start_random_map_RRT() {
+	int obstacles = 20;
+	delete classic_rrt;
+	classic_rrt = new RRT;
+	double max_x = classic_rrt->board_size_x / 3.0; //max size cuboid on x coordinate
+	double max_y = classic_rrt->board_size_y / 3.0; //max size cuboid on y coordinate
+	double max_z = classic_rrt->board_size_z / 3.0; //max size cuboid on z coordinate
+	for (int i = 0; i < obstacles; ++i) {
+		double x = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
+		double y = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
+		double z = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
+		double edge_x = FMath::FRandRange(1.0, max_x);
+		double edge_y = FMath::FRandRange(1.0, max_y);
+		double edge_z = FMath::FRandRange(1.0, max_z);
+		classic_rrt->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
+	}
+
+	classic_rrt->execute_rrt();
+	draw_path(classic_rrt);
+}
+
 void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, move_cord(FVector(START_X, START_Y, START_Z)), standard_rotation));
 	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, move_cord(FVector(FINISH_X, FINISH_Y, FINISH_Z)), standard_rotation));
@@ -517,15 +538,20 @@ void ACPP_RRT_Controller::BeginPlay() {
 	SetInputMode(InputMode);
 
 	if (MainMenuUserWidget_Class) {
-		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
+		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu."));
 		MainMenuInstance = CreateWidget<UMainMenu_UserWidget>(this, MainMenuUserWidget_Class);
 		if (MainMenuInstance) {
 			MainMenuInstance->AddToViewport();
 		}
 	}
 
+	if (BoardTypeUserWidget_Class) {
+		UE_LOG(LogTemp, Warning, TEXT("Create Board type manu."));
+		BoardTypeInstance = CreateWidget<UBoardType_UserWidget>(this, BoardTypeUserWidget_Class);
+	}
+
 	if (VisualizationUserWidget_Class) {
-		UE_LOG(LogTemp, Warning, TEXT("Create MainMenu"));
+		UE_LOG(LogTemp, Warning, TEXT("Create Visualizaton user widget."));
 		VisualizationMenuInstance = CreateWidget<UVisualization_UserWidget>(this, VisualizationUserWidget_Class);
 	}
 
@@ -534,10 +560,34 @@ void ACPP_RRT_Controller::BeginPlay() {
 }
 
 void ACPP_RRT_Controller::Tick(float DeltaTime) {
+	//Main menu
 	if (MainMenuInstance->start) {
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
+		MainMenuInstance->reset();
+		BoardTypeInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		//Usunac!!!!!!!!!!!!!!!!!!
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
+		//if (VisualizationMenuInstance) {
+		//	VisualizationMenuInstance->AddToViewport();
+		//	VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		//}
+		if (BoardTypeInstance) {
+			UE_LOG(LogTemp, Warning, TEXT("BoardTypeInstance Visible."));
+			BoardTypeInstance->AddToViewport();
+			BoardTypeInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+	//Board type (menu)
+	if (BoardTypeInstance->prepared) {
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
-		MainMenuInstance->reset();
+		BoardTypeInstance->reset();
 		VisualizationMenuInstance->reset();
 
 		if (VisualizationMenuInstance) {
@@ -545,6 +595,19 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
+	if (BoardTypeInstance->random) {
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
+		BoardTypeInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		if (VisualizationMenuInstance) {
+			VisualizationMenuInstance->AddToViewport();
+			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+	//Visualization menu
 	if (VisualizationMenuInstance->exit) {
 		MainMenuInstance->reset();
 		VisualizationMenuInstance->reset();
