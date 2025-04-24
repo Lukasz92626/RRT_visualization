@@ -472,6 +472,9 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 
 	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
 
+	VisualizationMenuInstance->set_start_position(START_X, START_Y, START_Z);
+	VisualizationMenuInstance->set_finish_position(FINISH_X, FINISH_Y, FINISH_Z);
+
 	VisualizationMenuInstance->set_total_nodes(nodes.Num());
 	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
 	VisualizationMenuInstance->set_node_path(nodes_path);

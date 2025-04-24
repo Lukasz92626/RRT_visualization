@@ -29,6 +29,18 @@ void UVisualization_UserWidget::set_board_dimensions(double length, double width
 	TextBlock_HeightValue->SetText(FText::FromString(FString::SanitizeFloat(height)));
 }
 
+void UVisualization_UserWidget::set_start_position(double x, double y, double z) {
+	TextBlock_Start_X_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), x)));
+	TextBlock_Start_Y_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), y)));
+	TextBlock_Start_Z_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), z)));
+}
+
+void UVisualization_UserWidget::set_finish_position(double x, double y, double z) {
+	TextBlock_Finish_X_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), x)));
+	TextBlock_Finish_Y_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), y)));
+	TextBlock_Finish_Z_cord->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), z)));
+}
+
 void UVisualization_UserWidget::set_total_nodes(int num_nodes) {
 	TextBlock_TotalNodesValue->SetText(FText::FromString(FString::FromInt(num_nodes)));
 }

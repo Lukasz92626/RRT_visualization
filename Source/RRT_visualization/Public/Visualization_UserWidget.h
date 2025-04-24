@@ -27,6 +27,8 @@ public:
 	void click_exit();
 
 	void set_board_dimensions(double length, double width, double height);
+	void set_start_position(double x, double y, double z);
+	void set_finish_position(double x, double y, double z);
 	void set_total_nodes(int num_nodes);
 	void set_total_obstacles(int num_obstacles);
 	void set_node_path(int num_nodes);
@@ -39,6 +41,22 @@ public:
 	class UTextBlock* TextBlock_WidthValue;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TextBlock_HeightValue;
+
+	//Start position
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Start_X_cord;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Start_Y_cord;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Start_Z_cord;
+
+	//Finish position
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Finish_X_cord;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Finish_Y_cord;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Finish_Z_cord;
 
 	//Statistics
 	UPROPERTY(meta = (BindWidget))
