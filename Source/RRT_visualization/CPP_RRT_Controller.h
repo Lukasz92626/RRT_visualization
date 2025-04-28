@@ -9,6 +9,7 @@
 #include "MainMenu_UserWidget.h"
 #include "Visualization_UserWidget.h"
 #include "BoardType_UserWidget.h"
+#include "Algorithm_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "CPP_RRT_Controller.generated.h"
@@ -24,7 +25,9 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 	GENERATED_BODY()
 
 	int nodes_path;
-	RRT* classic_rrt; //classic RRT implementation class
+	RRT* rrt_class; //classic RRT implementation class
+	int board_type;
+	int algorithm;
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
@@ -32,6 +35,7 @@ public:
 	UMainMenu_UserWidget* MainMenuInstance;
 	UVisualization_UserWidget* VisualizationMenuInstance;
 	UBoardType_UserWidget* BoardTypeInstance;
+	UAlgorithm_UserWidget* AlgorithmMenuInstance;
 	
 	//Node actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
@@ -60,6 +64,8 @@ public:
 	TSubclassOf<UVisualization_UserWidget> VisualizationUserWidget_Class;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
 	TSubclassOf<UBoardType_UserWidget> BoardTypeUserWidget_Class;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
+	TSubclassOf<UAlgorithm_UserWidget> AlgorithmUserWidget_Class;
 
 	FRotator standard_rotation; //standard rotation (0.0f, 0.0f, 0.0f)
 	FVector standard_position; //standard position (0.0f, 0.0f, 0.0f)
@@ -74,7 +80,8 @@ public:
 
 	void start_RRT();
 	void start_random_map_RRT();
-	void draw_path(RRT* rrt_class);
-	void clear_map(RRT* rrt_class);
+	//void draw_path(RRT* rrt_class);
+	void draw_path();
+	void clear_map();
 	FVector move_cord(FVector move_vector);
 };

@@ -42,4 +42,5 @@ void UBoardType_UserWidget::click_random() {
 void UBoardType_UserWidget::click_back() {
 	UE_LOG(LogTemp, Warning, TEXT("Clicked back in board type menu."));
 	back = true;
+	this->SetVisibility(ESlateVisibility::Hidden);
 }

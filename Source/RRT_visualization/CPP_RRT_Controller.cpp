@@ -396,48 +396,78 @@ public:
 };
 
 void ACPP_RRT_Controller::start_RRT() {
-	delete classic_rrt;
-	classic_rrt = new RRT;
-	classic_rrt->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
-	classic_rrt->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
-	classic_rrt->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
-	classic_rrt->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
-	classic_rrt->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
-	classic_rrt->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
-	classic_rrt->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
-	classic_rrt->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
-	classic_rrt->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
-	classic_rrt->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
-	classic_rrt->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
-	classic_rrt->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
-	classic_rrt->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+	delete rrt_class;
+	if (algorithm == 0) {
+		rrt_class = new RRT;
+	}
+	else if (algorithm == 1) {
 
-	classic_rrt->execute_rrt();
-	draw_path(classic_rrt);
+	}
+
+	if (board_type == 0) {
+		rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
+		rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
+		rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
+		rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
+		rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
+		rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
+		rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
+		rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
+		rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
+		rrt_class->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
+		rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
+		rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
+		rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+	}
+	else if (board_type == 1) {
+		int obstacles = 20;
+		double max_x = rrt_class->board_size_x / 3.0; //max size cuboid on x coordinate
+		double max_y = rrt_class->board_size_y / 3.0; //max size cuboid on y coordinate
+		double max_z = rrt_class->board_size_z / 3.0; //max size cuboid on z coordinate
+		for (int i = 0; i < obstacles; ++i) {
+			double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
+			double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
+			double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
+			double edge_x = FMath::FRandRange(1.0, max_x);
+			double edge_y = FMath::FRandRange(1.0, max_y);
+			double edge_z = FMath::FRandRange(1.0, max_z);
+			rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
+		}
+	}
+
+	if (algorithm == 0) {
+		rrt_class->execute_rrt();
+		draw_path();
+	}
+	else if (algorithm == 1) {
+		rrt_class->execute_rrt();
+		draw_path();
+	}
 }
 
 void ACPP_RRT_Controller::start_random_map_RRT() {
 	int obstacles = 20;
-	delete classic_rrt;
-	classic_rrt = new RRT;
-	double max_x = classic_rrt->board_size_x / 3.0; //max size cuboid on x coordinate
-	double max_y = classic_rrt->board_size_y / 3.0; //max size cuboid on y coordinate
-	double max_z = classic_rrt->board_size_z / 3.0; //max size cuboid on z coordinate
+	delete rrt_class;
+	rrt_class = new RRT;
+	double max_x = rrt_class->board_size_x / 3.0; //max size cuboid on x coordinate
+	double max_y = rrt_class->board_size_y / 3.0; //max size cuboid on y coordinate
+	double max_z = rrt_class->board_size_z / 3.0; //max size cuboid on z coordinate
 	for (int i = 0; i < obstacles; ++i) {
-		double x = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
-		double y = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
-		double z = FMath::FRandRange(2.0, classic_rrt->board_size_x*0.9);
+		double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
+		double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
+		double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
 		double edge_x = FMath::FRandRange(1.0, max_x);
 		double edge_y = FMath::FRandRange(1.0, max_y);
 		double edge_z = FMath::FRandRange(1.0, max_z);
-		classic_rrt->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
+		rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
 	}
 
-	classic_rrt->execute_rrt();
-	draw_path(classic_rrt);
+	rrt_class->execute_rrt();
+	draw_path();
 }
 
-void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
+void ACPP_RRT_Controller::draw_path() {
+	//void ACPP_RRT_Controller::draw_path(RRT * rrt_class) {
 	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, move_cord(FVector(START_X, START_Y, START_Z)), standard_rotation));
 	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, move_cord(FVector(FINISH_X, FINISH_Y, FINISH_Z)), standard_rotation));
 	//for (Node* path_node : rrt_class->planned_path) {
@@ -499,10 +529,10 @@ void ACPP_RRT_Controller::draw_path(RRT* rrt_class) {
 	VisualizationMenuInstance->set_total_nodes(nodes.Num());
 	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
 	VisualizationMenuInstance->set_node_path(nodes_path);
-	VisualizationMenuInstance->set_path_length(classic_rrt->path_lenght());
+	VisualizationMenuInstance->set_path_length(rrt_class->path_lenght());
 }
 
-void ACPP_RRT_Controller::clear_map(RRT* rrt_class) {
+void ACPP_RRT_Controller::clear_map() {
 	for (ANodeActor* current : nodes) {
 		current->Destroy();
 	}
@@ -524,11 +554,17 @@ FVector ACPP_RRT_Controller::move_cord(FVector moving_vector) {
 	return moving_vector;
 }
 
+//void ACPP_RRT_Controller::reset_all_menus() {
+//
+//}
+
 void ACPP_RRT_Controller::BeginPlay() {
 	Super::BeginPlay();
 
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
 	nodes_path = 0;
+	board_type = 0;
+	algorithm = 0;
 
 	bShowMouseCursor = true;
 
@@ -555,6 +591,11 @@ void ACPP_RRT_Controller::BeginPlay() {
 		VisualizationMenuInstance = CreateWidget<UVisualization_UserWidget>(this, VisualizationUserWidget_Class);
 	}
 
+	if (AlgorithmUserWidget_Class) {
+		UE_LOG(LogTemp, Warning, TEXT("Create Visualizaton user widget."));
+		AlgorithmMenuInstance = CreateWidget<UAlgorithm_UserWidget>(this, AlgorithmUserWidget_Class);
+	}
+
 	//FTimerHandle TimerHandle;
 	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 1.0f, false);
 }
@@ -565,11 +606,11 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 		//FTimerHandle TimerHandle;
 		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
 		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
+		
 		MainMenuInstance->reset();
 		BoardTypeInstance->reset();
-		VisualizationMenuInstance->reset();
+		//VisualizationMenuInstance->reset();
 
-		//Usunac!!!!!!!!!!!!!!!!!!
 		//FTimerHandle TimerHandle;
 		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
 		//if (VisualizationMenuInstance) {
@@ -585,9 +626,55 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 
 	//Board type (menu)
 	if (BoardTypeInstance->prepared) {
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 0.1f, false);
+		board_type = 0;
 		BoardTypeInstance->reset();
+		//VisualizationMenuInstance->reset();
+		AlgorithmMenuInstance->reset();
+
+		if (AlgorithmMenuInstance) {
+			UE_LOG(LogTemp, Warning, TEXT("AlgorithmMenuInstance Visible."));
+			AlgorithmMenuInstance->AddToViewport();
+			AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+		/*if (VisualizationMenuInstance) {
+			VisualizationMenuInstance->AddToViewport();
+			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}*/
+	}
+	if (BoardTypeInstance->random) {
+		//FTimerHandle TimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
+		board_type = 1;
+		BoardTypeInstance->reset();
+		AlgorithmMenuInstance->reset();
+
+		if (AlgorithmMenuInstance) {
+			UE_LOG(LogTemp, Warning, TEXT("AlgorithmMenuInstance Visible."));
+			AlgorithmMenuInstance->AddToViewport();
+			AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+		//if (VisualizationMenuInstance) {
+		//	VisualizationMenuInstance->AddToViewport();
+		//	VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		//}
+	}
+	if (BoardTypeInstance->back) {
+		MainMenuInstance->reset();
+		BoardTypeInstance->reset();
+
+		if (MainMenuInstance) {
+			MainMenuInstance->AddToViewport();
+			MainMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+	//Algorithm menu
+	if (AlgorithmMenuInstance->classic) {
+		algorithm = 0;
+		start_RRT();
+		AlgorithmMenuInstance->reset();
 		VisualizationMenuInstance->reset();
 
 		if (VisualizationMenuInstance) {
@@ -595,15 +682,35 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	if (BoardTypeInstance->random) {
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
-		BoardTypeInstance->reset();
+	if (AlgorithmMenuInstance->connect) {
+		algorithm = 1;
+		start_RRT();
+		AlgorithmMenuInstance->reset();
 		VisualizationMenuInstance->reset();
 
 		if (VisualizationMenuInstance) {
 			VisualizationMenuInstance->AddToViewport();
 			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	if (AlgorithmMenuInstance->other) {
+		algorithm = 2;
+		start_RRT();
+		AlgorithmMenuInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		//if (VisualizationMenuInstance) {
+		//	VisualizationMenuInstance->AddToViewport();
+		//	VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		//}
+	}
+	if (AlgorithmMenuInstance->back) {
+		AlgorithmMenuInstance->reset();
+		BoardTypeInstance->reset();
+
+		if (BoardTypeInstance) {
+			BoardTypeInstance->AddToViewport();
+			BoardTypeInstance->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
@@ -616,7 +723,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			MainMenuInstance->AddToViewport();
 			MainMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
-		clear_map(classic_rrt);
+		clear_map();
 	}
 }
 
