@@ -17,8 +17,8 @@ class RRT_VISUALIZATION_API UMainMenu_UserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	bool start;
-	bool credits;
+	bool start; //information about select start on menu
+	bool credits; //information about select credits on menu
 
 	virtual void NativeConstruct() override;
 

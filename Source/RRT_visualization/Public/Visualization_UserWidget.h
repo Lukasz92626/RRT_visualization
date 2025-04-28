@@ -17,7 +17,7 @@ class RRT_VISUALIZATION_API UVisualization_UserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	bool exit;
+	bool exit; //information about select exit from game on menu
 
 	virtual void NativeConstruct() override;
 

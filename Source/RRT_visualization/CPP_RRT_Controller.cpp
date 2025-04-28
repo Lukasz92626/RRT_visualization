@@ -232,7 +232,7 @@ public:
 		start = new Node(START_X, START_Y, START_Z);
 		finish = new Node(FINISH_X, FINISH_Y, FINISH_Z);
 	}
-	~RRT() {
+	virtual ~RRT() {
 		delete start;
 		planned_path.clear();
 	}
@@ -248,11 +248,31 @@ public:
 		return new Node(x, y, z);
 	}
 
-	Node* find_nearest_node(Node* new_node) {
-		Node* nearest = start; //nearest node to current node
-		double dist = distance(start, new_node); //distance from nearest node to new_node
+	//Node* find_nearest_node(Node* new_node) {
+	//	Node* nearest = start; //nearest node to current node
+	//	double dist = distance(start, new_node); //distance from nearest node to new_node
+	//	queue<Node*> node_queue; //queue with nodes to verify
+	//	node_queue.push(start);
+	//	while (!node_queue.empty()) {
+	//		Node* current = node_queue.front(); //current node
+	//		for (int i = 0; i < current->children.size(); ++i) {
+	//			node_queue.push(current->children[i]);
+	//		}
+	//		double current_dist = distance(current, new_node); //distance from new_node to current node
+	//		if (current_dist < dist) {
+	//			dist = current_dist;
+	//			nearest = current;
+	//		}
+	//		node_queue.pop();
+	//	}
+	//	return nearest;
+	//}
+
+	Node* find_nearest_node(Node* new_node, Node* start_node) {
+		Node* nearest = start_node; //nearest node to current node
+		double dist = distance(start_node, new_node); //distance from nearest node to new_node
 		queue<Node*> node_queue; //queue with nodes to verify
-		node_queue.push(start);
+		node_queue.push(start_node);
 		while (!node_queue.empty()) {
 			Node* current = node_queue.front(); //current node
 			for (int i = 0; i < current->children.size(); ++i) {
@@ -268,8 +288,8 @@ public:
 		return nearest;
 	}
 
-	bool verify_finish(Node* new_node) {
-		if (distance(finish, new_node) <= min_distance + 1)
+	bool verify_finish(Node* new_node, Node* finish_node) {
+		if (distance(finish_node, new_node) <= min_distance + 1)
 			return true;
 		return false;
 	}
@@ -325,14 +345,15 @@ public:
 	}
 
 	double path_lenght() {
-		double lenght = 0;
+		double lenght = 0; //lenght of path
 		for (int i = 0; i < planned_path.size() - 1; ++i) {
 			lenght += distance(planned_path[i], planned_path[i + 1]);
 		}
 		return lenght;
 	}
 
-	void execute_rrt() {
+	virtual void execute_rrt() {
+		UE_LOG(LogTemp, Warning, TEXT("RRT."));
 		bool is_finish = false; //contains bool information about distance to finish
 		int i = 0;
 		//cout << "Start: ";
@@ -349,13 +370,14 @@ public:
 		do {
 			Node* new_node = nullptr; //new node
 			Node* nearest = nullptr; //nearest node to new node
-			double dist = 0;
+			double dist = 0; //distance new node to nearest
 			do {
 				new_node = random_point();
-				nearest = find_nearest_node(new_node);
+				nearest = find_nearest_node(new_node, start);
 				dist = distance(new_node, nearest);
 			} while (dist < min_distance || !check_collisions(nearest, new_node));
 			//while (dist < min_distance && check_collisions(nearest, new_node));
+			
 			//cout << "New node: ";
 			//new_node->print_values();
 			if (dist > max_distance) {
@@ -369,7 +391,7 @@ public:
 				//cout << "Changed new node: ";
 				//new_node->print_values();
 			}
-			is_finish = verify_finish(new_node);
+			is_finish = verify_finish(new_node, finish);
 			if (is_finish) {
 				add_node_to_tree(finish, nearest);
 				finish->set_parent(nearest);
@@ -378,7 +400,7 @@ public:
 				add_node_to_tree(new_node, nearest);
 			++i;
 		} while (!is_finish && i <= max_iterations);
-		if (i > max_iterations) {
+		if (i >= max_iterations) {
 			//cout << "Max iterations" << endl;
 			//cout << "Path not found" << endl;
 			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
@@ -395,13 +417,126 @@ public:
 	}
 };
 
+class RRT_Connect : public RRT {
+public:
+	Node* connect_node_1;
+	Node* connect_node_2;
+
+	Node* find_new_node(Node* current_start, Node* current_finish) {
+		bool is_connected = false; //contains bool information about distance to current finish
+		Node* new_node = nullptr; //new node
+		Node* nearest = nullptr; //nearest node to new node
+		Node* nearest_finish_tree = nullptr; //nearest node to new node from current finish tree
+		double dist = 0; //distance new node to nearest
+		do {
+			new_node = random_point();
+			nearest = find_nearest_node(new_node, current_start);
+			dist = distance(new_node, nearest);
+		} while (dist < min_distance || !check_collisions(nearest, new_node));
+
+		if (dist > max_distance) {
+			double dx = new_node->get_x() - nearest->get_x(); //x direction vector component
+			double dy = new_node->get_y() - nearest->get_y(); //y direction vector component
+			double dz = new_node->get_z() - nearest->get_z(); //z direction vector component
+			double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
+			new_node->set_x(nearest->get_x() + (dx / dist_near) * MAX_DIST);
+			new_node->set_y(nearest->get_y() + (dy / dist_near) * MAX_DIST);
+			new_node->set_z(nearest->get_z() + (dz / dist_near) * MAX_DIST);
+			//cout << "Changed new node: ";
+			new_node->print_values();
+		}
+		/*is_connected = verify_finish(new_node, current_finish);
+		if (is_connected) {
+			add_node_to_tree(current_finish, nearest);
+			current_finish->set_parent(nearest);
+			return is_connected;
+		}
+		else
+			add_node_to_tree(new_node, nearest);*/
+		
+		add_node_to_tree(new_node, nearest);
+
+		nearest_finish_tree = find_nearest_node(new_node, current_finish);
+		//dist = distance(new_node, nearest_finish_tree);
+		is_connected = verify_finish(new_node, nearest_finish_tree);
+		if (is_connected) {
+			connect_node_1 = new_node;
+			connect_node_2 = nearest_finish_tree;
+			//new_node->add_children(nearest_finish_tree);
+			//nearest_finish_tree->add_children(new_node);
+
+			//add_node_to_tree(new_node, nearest_finish_tree);
+			//add_node_to_tree(new_node, nearest);
+			//add_node_to_tree(nearest_finish_tree, new_node);
+			return new_node;
+		}
+		return nullptr;
+	}
+
+	void save_path_connect(Node* connect_node) {
+		if (!connect_node)
+			return;
+		Node* current = connect_node_1; //current node
+		planned_path.clear();
+		while (current->parent != nullptr) {
+			planned_path.push_front(current);
+			current->set_color(1); //color of path
+			current = current->parent;
+		}
+		planned_path.push_front(current);
+		
+		current = connect_node_2;
+		while (current->parent != nullptr) {
+			planned_path.push_back(current);
+			current->set_color(1); //color of path
+			current = current->parent;
+		}
+		planned_path.push_back(current);
+
+		start->set_color(2);
+		finish->set_color(3);
+		connect_node_1->set_color(4);
+	}
+
+	void execute_rrt() {
+		UE_LOG(LogTemp, Warning, TEXT("Execute RRT (RRT Connect)."));
+		//bool is_finish = false; //contains bool information about distance to finish
+		Node* connect_node = nullptr;
+		int i = 0;
+		UE_LOG(LogTemp, Warning, TEXT("Start: "));
+		start->print_values();
+		UE_LOG(LogTemp, Warning, TEXT("Finish: "));
+		finish->print_values();
+		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
+		print_cuboids();
+		do {
+			connect_node = find_new_node(start, finish);
+			if (connect_node)
+				break;
+			connect_node = find_new_node(finish, start);
+			++i;
+		} while (!connect_node && i <= max_iterations);
+		if (i >= max_iterations) {
+			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Found path. Interations: %d"), i);
+			UE_LOG(LogTemp, Warning, TEXT("Path:"));
+			save_path_connect(connect_node);
+			print_path();
+		}
+	}
+};
+
 void ACPP_RRT_Controller::start_RRT() {
 	delete rrt_class;
 	if (algorithm == 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Create RRT class."));
 		rrt_class = new RRT;
 	}
 	else if (algorithm == 1) {
-
+		UE_LOG(LogTemp, Warning, TEXT("Create RRT_Connect class."));
+		rrt_class = new RRT_Connect;
 	}
 
 	if (board_type == 0) {
@@ -420,62 +555,58 @@ void ACPP_RRT_Controller::start_RRT() {
 		rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
 	}
 	else if (board_type == 1) {
-		int obstacles = 20;
+		int obstacles = 20; //number of obstacles on board
 		double max_x = rrt_class->board_size_x / 3.0; //max size cuboid on x coordinate
 		double max_y = rrt_class->board_size_y / 3.0; //max size cuboid on y coordinate
 		double max_z = rrt_class->board_size_z / 3.0; //max size cuboid on z coordinate
 		for (int i = 0; i < obstacles; ++i) {
-			double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-			double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-			double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-			double edge_x = FMath::FRandRange(1.0, max_x);
-			double edge_y = FMath::FRandRange(1.0, max_y);
-			double edge_z = FMath::FRandRange(1.0, max_z);
+			double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random x cordinate of cuboid obstacle
+			double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random y cordinate of cuboid obstacle
+			double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random z cordinate of cuboid obstacle
+			double edge_x = FMath::FRandRange(1.0, max_x); //random edge parallel to x axis of cuboid obstacle
+			double edge_y = FMath::FRandRange(1.0, max_y); //random edge parallel to y axis of cuboid obstacle
+			double edge_z = FMath::FRandRange(1.0, max_z); //random edge parallel to z axis of cuboid obstacle
 			rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
 		}
 	}
 
 	if (algorithm == 0) {
 		rrt_class->execute_rrt();
-		draw_path();
+		draw_path(rrt_class->start);
 	}
 	else if (algorithm == 1) {
 		rrt_class->execute_rrt();
-		draw_path();
+		draw_path_connect();
 	}
 }
 
+//Do usuniecia
 void ACPP_RRT_Controller::start_random_map_RRT() {
-	int obstacles = 20;
+	int obstacles = 20; //number of obstacles on board
 	delete rrt_class;
 	rrt_class = new RRT;
 	double max_x = rrt_class->board_size_x / 3.0; //max size cuboid on x coordinate
 	double max_y = rrt_class->board_size_y / 3.0; //max size cuboid on y coordinate
 	double max_z = rrt_class->board_size_z / 3.0; //max size cuboid on z coordinate
 	for (int i = 0; i < obstacles; ++i) {
-		double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-		double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-		double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9);
-		double edge_x = FMath::FRandRange(1.0, max_x);
-		double edge_y = FMath::FRandRange(1.0, max_y);
-		double edge_z = FMath::FRandRange(1.0, max_z);
+		double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random x cordinate of cuboid obstacle
+		double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random y cordinate of cuboid obstacle
+		double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random z cordinate of cuboid obstacle
+		double edge_x = FMath::FRandRange(1.0, max_x); //random edge parallel to x axis of cuboid obstacle
+		double edge_y = FMath::FRandRange(1.0, max_y); //random edge parallel to y axis of cuboid obstacle
+		double edge_z = FMath::FRandRange(1.0, max_z); //random edge parallel to z axis of cuboid obstacle
 		rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
 	}
 
 	rrt_class->execute_rrt();
-	draw_path();
+	draw_path(rrt_class->start);
 }
 
-void ACPP_RRT_Controller::draw_path() {
-	//void ACPP_RRT_Controller::draw_path(RRT * rrt_class) {
-	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, move_cord(FVector(START_X, START_Y, START_Z)), standard_rotation));
-	//nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, move_cord(FVector(FINISH_X, FINISH_Y, FINISH_Z)), standard_rotation));
-	//for (Node* path_node : rrt_class->planned_path) {
-	//	nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, move_cord(FVector(path_node->get_x(), path_node->get_y(), path_node->get_z())), standard_rotation));
-	//}
-
+void ACPP_RRT_Controller::draw_path(Node* start_node) {
+	UE_LOG(LogTemp, Warning, TEXT("Draw Path."));
 	queue<Node*> node_queue; //queue with drawing nodes
-	node_queue.push(rrt_class->start);
+	//node_queue.push(rrt_class->start);
+	node_queue.push(start_node);
 	nodes_path = 0;
 	//path_length = 0;
 	while (!node_queue.empty()) {
@@ -483,22 +614,22 @@ void ACPP_RRT_Controller::draw_path() {
 		for (int i = 0; i < current->children.size(); ++i) {
 			node_queue.push(current->children[i]);
 		}
-		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z()));
-		FVector parent_posiotion = standard_position;
+		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z())); //position of current node scaled to Unreal Engine Map
+		FVector parent_position = standard_position; //parent position of current node scaled to Unreal Engine Map
 		if (current->parent != nullptr) {
-			parent_posiotion = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
+			parent_position = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
 			//path_length += classic_rrt->distance(current, current->parent);
 		}
 		switch (current->get_color()) {
 		case 0:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
 			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorTree, standard_position, standard_rotation));
-			lines.Last()->SetLine(current_position, parent_posiotion);
+			lines.Last()->SetLine(current_position, parent_position);
 			break;
 		case 1:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, current_position, standard_rotation));
 			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
-			lines.Last()->SetLine(current_position, parent_posiotion);
+			lines.Last()->SetLine(current_position, parent_position);
 			++nodes_path;
 			break;
 		case 2:
@@ -507,17 +638,139 @@ void ACPP_RRT_Controller::draw_path() {
 		case 3:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, current_position, standard_rotation));
 			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
-			lines.Last()->SetLine(current_position, parent_posiotion);
+			lines.Last()->SetLine(current_position, parent_position);
 			break;
 		default:
 			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
 			break;
 		}
 		node_queue.pop();
+		//if (current->children[0] == current->children[0]->children[0])
+		//	break;
 	}
 	
 	for (Cuboid cub : rrt_class->cuboids) {
 		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x()*0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
+		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
+	}
+
+	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
+
+	VisualizationMenuInstance->set_start_position(START_X, START_Y, START_Z);
+	VisualizationMenuInstance->set_finish_position(FINISH_X, FINISH_Y, FINISH_Z);
+
+	VisualizationMenuInstance->set_total_nodes(nodes.Num());
+	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
+	VisualizationMenuInstance->set_node_path(nodes_path);
+	VisualizationMenuInstance->set_path_length(rrt_class->path_lenght());
+}
+
+void ACPP_RRT_Controller::draw_path_connect() {
+	queue<Node*> node_queue; //queue with drawing nodes
+	node_queue.push(rrt_class->start);
+	nodes_path = 0;
+	while (!node_queue.empty()) {
+		Node* current = node_queue.front(); //current node
+		for (int i = 0; i < current->children.size(); ++i) {
+			node_queue.push(current->children[i]);
+		}
+		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z())); //position of current node scaled to Unreal Engine Map
+		FVector parent_position = standard_position; //parent position of current node scaled to Unreal Engine Map
+		if (current->parent != nullptr) {
+			parent_position = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
+			//path_length += classic_rrt->distance(current, current->parent);
+		}
+		switch (current->get_color()) {
+		case 0:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorTree, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			break;
+		case 1:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			++nodes_path;
+			break;
+		case 2:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, current_position, standard_rotation));
+			break;
+		case 3:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			break;
+		case 4:
+			UE_LOG(LogTemp, Warning, TEXT("ORANGE"));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorConnect, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			break;
+		default:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
+			break;
+		}
+		node_queue.pop();
+		//if (current->children[0] == current->children[0]->children[0])
+		//	break;
+	}
+
+	node_queue.push(rrt_class->finish);
+	nodes_path = 0;
+	while (!node_queue.empty()) {
+		Node* current = node_queue.front(); //current node
+		for (int i = 0; i < current->children.size(); ++i) {
+			node_queue.push(current->children[i]);
+		}
+		FVector current_position = move_cord(FVector(current->get_x(), current->get_y(), current->get_z())); //position of current node scaled to Unreal Engine Map
+		FVector parent_position = standard_position; //parent position of current node scaled to Unreal Engine Map
+		if (current->parent != nullptr) {
+			parent_position = move_cord(FVector(current->parent->get_x(), current->parent->get_y(), current->parent->get_z()));
+			//path_length += classic_rrt->distance(current, current->parent);
+		}
+		switch (current->get_color()) {
+		case 0:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorTree, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			break;
+		case 1:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorPath, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			++nodes_path;
+			break;
+		case 2:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorStart, current_position, standard_rotation));
+			break;
+		case 3:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorFinish, current_position, standard_rotation));
+			//lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			//lines.Last()->SetLine(current_position, parent_position);
+			break;
+		case 4:
+			UE_LOG(LogTemp, Warning, TEXT("ORANGE"));
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorConnect, current_position, standard_rotation));
+			lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+			lines.Last()->SetLine(current_position, parent_position);
+			break;
+		default:
+			nodes.Add(GetWorld()->SpawnActor<ANodeActor>(NodeActorTree, current_position, standard_rotation));
+			break;
+		}
+		node_queue.pop();
+		//if (current->children[0] == current->children[0]->children[0])
+		//	break;
+	}
+
+	RRT_Connect* rrt_con = static_cast<RRT_Connect*>(rrt_class);
+	FVector pos_node_1 = move_cord(FVector(rrt_con->connect_node_1->get_x(), rrt_con->connect_node_1->get_y(), rrt_con->connect_node_1->get_z()));
+	FVector pos_node_2 = move_cord(FVector(rrt_con->connect_node_2->get_x(), rrt_con->connect_node_2->get_y(), rrt_con->connect_node_2->get_z()));
+	lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
+	lines.Last()->SetLine(pos_node_1, pos_node_2);
+
+	for (Cuboid cub : rrt_class->cuboids) {
+		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x() * 0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
 		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
 	}
 
@@ -728,6 +981,12 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 }
 
 ACPP_RRT_Controller::ACPP_RRT_Controller() {
+	nodes_path = 0;
+	rrt_class = nullptr;
+
+	board_type = 0;
+	algorithm = 0;
+
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
 	standard_position = FVector(0.0f, 0.0f, 0.0f);
 }

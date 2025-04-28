@@ -17,10 +17,10 @@ class RRT_VISUALIZATION_API UAlgorithm_UserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	bool classic;
-	bool connect;
+	bool classic;  //information about select classic RRT algorithm
+	bool connect; //information about select RRT connect algorithm
 	bool other;
-	bool back;
+	bool back; //information about select back to previous menu page
 
 	virtual void NativeConstruct() override;
 

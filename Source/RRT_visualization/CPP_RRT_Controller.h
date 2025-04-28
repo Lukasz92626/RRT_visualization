@@ -14,6 +14,9 @@
 #include "GameFramework/PlayerController.h"
 #include "CPP_RRT_Controller.generated.h"
 
+class Point;
+class Node;
+class Cuboid;
 class RRT;
 
 /**
@@ -24,18 +27,19 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 {
 	GENERATED_BODY()
 
-	int nodes_path;
+	int nodes_path; //number of nodes in path
 	RRT* rrt_class; //classic RRT implementation class
-	int board_type;
-	int algorithm;
+
+	int board_type; //board type selected in menu
+	int algorithm; //algorithm selected in menu
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
 
-	UMainMenu_UserWidget* MainMenuInstance;
-	UVisualization_UserWidget* VisualizationMenuInstance;
-	UBoardType_UserWidget* BoardTypeInstance;
-	UAlgorithm_UserWidget* AlgorithmMenuInstance;
+	UMainMenu_UserWidget* MainMenuInstance; //Instance of main menu class
+	UVisualization_UserWidget* VisualizationMenuInstance; //Instance of visualization menu class
+	UBoardType_UserWidget* BoardTypeInstance; //Instance of board type menu class
+	UAlgorithm_UserWidget* AlgorithmMenuInstance; //Instance of algorithm menu class
 	
 	//Node actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
@@ -46,6 +50,8 @@ public:
 	TSubclassOf<ANodeActor> NodeActorStart;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
 	TSubclassOf<ANodeActor> NodeActorFinish;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
+	TSubclassOf<ANodeActor> NodeActorConnect;
 
 	//Cuboid actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Cuboid Actor")
@@ -81,7 +87,9 @@ public:
 	void start_RRT();
 	void start_random_map_RRT();
 	//void draw_path(RRT* rrt_class);
-	void draw_path();
+	//void draw_path(Node* first_node);
+	void draw_path(Node* start_node);
+	void draw_path_connect();
 	void clear_map();
 	FVector move_cord(FVector move_vector);
 };

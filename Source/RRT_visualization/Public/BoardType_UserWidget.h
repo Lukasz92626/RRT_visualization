@@ -17,9 +17,9 @@ class RRT_VISUALIZATION_API UBoardType_UserWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	bool prepared;
-	bool random;
-	bool back;
+	bool prepared; //information about select prepared board on menu
+	bool random; //information about select random obstacles board on menu
+	bool back; //information about select back to previous menu page
 	
 	virtual void NativeConstruct() override;
 
