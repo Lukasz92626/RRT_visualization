@@ -23,6 +23,11 @@ void UVisualization_UserWidget::click_exit() {
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
+void UVisualization_UserWidget::set_algorithm_type(string algorithm_type) {
+	FString UEString(algorithm_type.c_str());
+	TextBlock_Algorithm->SetText(FText::FromString(UEString));
+}
+
 void UVisualization_UserWidget::set_board_dimensions(double length, double width, double height) {
 	TextBlock_LengthValue->SetText(FText::FromString(FString::SanitizeFloat(length)));
 	TextBlock_WidthValue->SetText(FText::FromString(FString::SanitizeFloat(width)));

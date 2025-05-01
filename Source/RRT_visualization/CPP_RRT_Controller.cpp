@@ -79,7 +79,6 @@ public:
 	}
 
 	void print_values() {
-		//cout << "(" << x << ", " << y << ", " << z << ")";
 		UE_LOG(LogTemp, Warning, TEXT("( %f, %f, %f)"), x, y, z);
 	}
 };
@@ -154,7 +153,6 @@ public:
 	}
 
 	void print_values() {
-		//cout << "(" << x << ", " << y << ", " << z << ")";
 		UE_LOG(LogTemp, Warning, TEXT("(%f, %f, %f)"), x, y, z);
 	}
 };
@@ -235,6 +233,7 @@ public:
 	virtual ~RRT() {
 		delete start;
 		planned_path.clear();
+		cuboids.clear();
 	}
 
 	double distance(Node* node_1, Node* node_2) {
@@ -335,12 +334,9 @@ public:
 	void print_cuboids() {
 		int size = cuboids.size(); //size of cuboids vector
 		for (int i = 0; i < size; ++i) {
-			//cout << i + 1 << " ";
 			UE_LOG(LogTemp, Warning, TEXT("%d"), i + 1);
 			cuboids[i].first.print_values();
-			//cout << " ";
 			cuboids[i].second.print_values();
-			//cout << endl;
 		}
 	}
 
@@ -352,19 +348,24 @@ public:
 		return lenght;
 	}
 
+	void move_node_closer_other(Node* node, Node* other_node) {
+		double dx = node->get_x() - other_node->get_x(); //x direction vector component
+		double dy = node->get_y() - other_node->get_y(); //y direction vector component
+		double dz = node->get_z() - other_node->get_z(); //z direction vector component
+		double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
+		node->set_x(other_node->get_x() + (dx / dist_near) * MAX_DIST);
+		node->set_y(other_node->get_y() + (dy / dist_near) * MAX_DIST);
+		node->set_z(other_node->get_z() + (dz / dist_near) * MAX_DIST);
+	}
+
 	virtual void execute_rrt() {
 		UE_LOG(LogTemp, Warning, TEXT("RRT."));
 		bool is_finish = false; //contains bool information about distance to finish
 		int i = 0;
-		//cout << "Start: ";
 		UE_LOG(LogTemp, Warning, TEXT("Start: "));
 		start->print_values();
-		//cout << endl;
-		//cout << "Finish: ";
 		UE_LOG(LogTemp, Warning, TEXT("Finish: "));
 		finish->print_values();
-		//cout << endl;
-		//cout << "Cuboids:" << endl;
 		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
 		print_cuboids();
 		do {
@@ -376,20 +377,16 @@ public:
 				nearest = find_nearest_node(new_node, start);
 				dist = distance(new_node, nearest);
 			} while (dist < min_distance || !check_collisions(nearest, new_node));
-			//while (dist < min_distance && check_collisions(nearest, new_node));
-			
-			//cout << "New node: ";
-			//new_node->print_values();
+
 			if (dist > max_distance) {
-				double dx = new_node->get_x() - nearest->get_x(); //x direction vector component
-				double dy = new_node->get_y() - nearest->get_y(); //y direction vector component
-				double dz = new_node->get_z() - nearest->get_z(); //z direction vector component
-				double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
-				new_node->set_x(nearest->get_x() + (dx / dist_near) * MAX_DIST);
-				new_node->set_y(nearest->get_y() + (dy / dist_near) * MAX_DIST);
-				new_node->set_z(nearest->get_z() + (dz / dist_near) * MAX_DIST);
-				//cout << "Changed new node: ";
-				//new_node->print_values();
+				//double dx = new_node->get_x() - nearest->get_x(); //x direction vector component
+				//double dy = new_node->get_y() - nearest->get_y(); //y direction vector component
+				//double dz = new_node->get_z() - nearest->get_z(); //z direction vector component
+				//double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
+				//new_node->set_x(nearest->get_x() + (dx / dist_near) * MAX_DIST);
+				//new_node->set_y(nearest->get_y() + (dy / dist_near) * MAX_DIST);
+				//new_node->set_z(nearest->get_z() + (dz / dist_near) * MAX_DIST);
+				move_node_closer_other(new_node, nearest);
 			}
 			is_finish = verify_finish(new_node, finish);
 			if (is_finish) {
@@ -401,15 +398,10 @@ public:
 			++i;
 		} while (!is_finish && i <= max_iterations);
 		if (i >= max_iterations) {
-			//cout << "Max iterations" << endl;
-			//cout << "Path not found" << endl;
 			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
 		}
 		else {
-			//cout << "Found path" << endl;
-			//cout << "Iterations: " << i << endl;
 			UE_LOG(LogTemp, Warning, TEXT("Found path. Interations: %d"), i);
-			//cout << "Path:" << endl;
 			UE_LOG(LogTemp, Warning, TEXT("Path:"));
 			save_path();
 			print_path();
@@ -422,11 +414,28 @@ public:
 	Node* connect_node_1;
 	Node* connect_node_2;
 
+	~RRT_Connect() {
+		delete finish;
+	}
+
+	Node* find_connect_node(Node* new_node, Node* current_finish) {
+		Node* nearest_finish_tree = nullptr; //nearest node to new node from current finish tree
+		bool is_connected = false; //contains bool information connection between trees
+		nearest_finish_tree = find_nearest_node(new_node, current_finish);
+		is_connected = verify_finish(new_node, nearest_finish_tree);
+		if (is_connected) {
+			connect_node_1 = new_node;
+			connect_node_2 = nearest_finish_tree;
+			return new_node;
+		}
+		return nullptr;
+	}
+
 	Node* find_new_node(Node* current_start, Node* current_finish) {
-		bool is_connected = false; //contains bool information about distance to current finish
+		//bool is_connected = false; //contains bool information connection between trees
 		Node* new_node = nullptr; //new node
 		Node* nearest = nullptr; //nearest node to new node
-		Node* nearest_finish_tree = nullptr; //nearest node to new node from current finish tree
+		//Node* nearest_finish_tree = nullptr; //nearest node to new node from current finish tree
 		double dist = 0; //distance new node to nearest
 		do {
 			new_node = random_point();
@@ -442,7 +451,6 @@ public:
 			new_node->set_x(nearest->get_x() + (dx / dist_near) * MAX_DIST);
 			new_node->set_y(nearest->get_y() + (dy / dist_near) * MAX_DIST);
 			new_node->set_z(nearest->get_z() + (dz / dist_near) * MAX_DIST);
-			//cout << "Changed new node: ";
 			new_node->print_values();
 		}
 		/*is_connected = verify_finish(new_node, current_finish);
@@ -456,21 +464,22 @@ public:
 		
 		add_node_to_tree(new_node, nearest);
 
-		nearest_finish_tree = find_nearest_node(new_node, current_finish);
-		//dist = distance(new_node, nearest_finish_tree);
-		is_connected = verify_finish(new_node, nearest_finish_tree);
-		if (is_connected) {
-			connect_node_1 = new_node;
-			connect_node_2 = nearest_finish_tree;
-			//new_node->add_children(nearest_finish_tree);
-			//nearest_finish_tree->add_children(new_node);
+		//nearest_finish_tree = find_nearest_node(new_node, current_finish);
+		////dist = distance(new_node, nearest_finish_tree);
+		//is_connected = verify_finish(new_node, nearest_finish_tree);
+		//if (is_connected) {
+		//	connect_node_1 = new_node;
+		//	connect_node_2 = nearest_finish_tree;
+		//	//new_node->add_children(nearest_finish_tree);
+		//	//nearest_finish_tree->add_children(new_node);
 
-			//add_node_to_tree(new_node, nearest_finish_tree);
-			//add_node_to_tree(new_node, nearest);
-			//add_node_to_tree(nearest_finish_tree, new_node);
-			return new_node;
-		}
-		return nullptr;
+		//	//add_node_to_tree(new_node, nearest_finish_tree);
+		//	//add_node_to_tree(new_node, nearest);
+		//	//add_node_to_tree(nearest_finish_tree, new_node);
+		//	return new_node;
+		//}
+		//return nullptr;
+		return find_connect_node(new_node, current_finish);
 	}
 
 	void save_path_connect(Node* connect_node) {
@@ -498,10 +507,23 @@ public:
 		connect_node_1->set_color(4);
 	}
 
+	Node* extend(Node* current_start, Node* current_finish) {
+		Node* nearest = find_nearest_node(current_finish, current_start); //nearest node to finish node
+		Node* new_node = new Node(current_finish->get_x(), current_finish->get_y(), current_finish->get_z());
+		move_node_closer_other(new_node, nearest);
+		if (check_collisions(nearest, new_node)) {
+			add_node_to_tree(new_node, nearest);
+			return new_node;
+		}
+		delete new_node;
+		return nullptr;
+	}
+
 	void execute_rrt() {
-		UE_LOG(LogTemp, Warning, TEXT("Execute RRT (RRT Connect)."));
+		UE_LOG(LogTemp, Warning, TEXT("Execute RRT Connect."));
 		//bool is_finish = false; //contains bool information about distance to finish
-		Node* connect_node = nullptr;
+		Node* connect_node = nullptr; //node which connect trees
+		Node* new_node = nullptr; //new node in tree
 		int i = 0;
 		UE_LOG(LogTemp, Warning, TEXT("Start: "));
 		start->print_values();
@@ -510,10 +532,24 @@ public:
 		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
 		print_cuboids();
 		do {
-			connect_node = find_new_node(start, finish);
+			/*connect_node = find_new_node(start, finish);
 			if (connect_node)
 				break;
-			connect_node = find_new_node(finish, start);
+			connect_node = find_new_node(finish, start);*/
+			new_node = extend(start, finish);
+			if (new_node)
+				connect_node = find_connect_node(new_node, finish);
+			else
+				connect_node = find_new_node(start, finish);
+
+			if (connect_node)
+				break;
+
+			new_node = extend(finish, start);
+			if (new_node)
+				connect_node = find_connect_node(new_node, start);
+			else
+				connect_node = find_new_node(finish, start);
 			++i;
 		} while (!connect_node && i <= max_iterations);
 		if (i >= max_iterations) {
@@ -527,6 +563,12 @@ public:
 		}
 	}
 };
+
+double ACPP_RRT_Controller::reduce_random_edge(double edge, double cordinate, double board_size) {
+	if (cordinate + edge >= board_size)
+		edge = board_size - cordinate;
+	return edge;
+}
 
 void ACPP_RRT_Controller::start_RRT() {
 	delete rrt_class;
@@ -563,16 +605,19 @@ void ACPP_RRT_Controller::start_RRT() {
 			double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random x cordinate of cuboid obstacle
 			double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random y cordinate of cuboid obstacle
 			double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random z cordinate of cuboid obstacle
-			double edge_x = FMath::FRandRange(1.0, max_x); //random edge parallel to x axis of cuboid obstacle
-			double edge_y = FMath::FRandRange(1.0, max_y); //random edge parallel to y axis of cuboid obstacle
-			double edge_z = FMath::FRandRange(1.0, max_z); //random edge parallel to z axis of cuboid obstacle
+			//double edge_x = FMath::FRandRange(1.0, max_x); //random edge parallel to x axis of cuboid obstacle
+			//double edge_y = FMath::FRandRange(1.0, max_y); //random edge parallel to y axis of cuboid obstacle
+			//double edge_z = FMath::FRandRange(1.0, max_z); //random edge parallel to z axis of cuboid obstacle
+			double edge_x = reduce_random_edge(FMath::FRandRange(1.0, max_x), x, rrt_class->board_size_x); //random edge parallel to x axis of cuboid obstacle
+			double edge_y = reduce_random_edge(FMath::FRandRange(1.0, max_y), y, rrt_class->board_size_y); //random edge parallel to y axis of cuboid obstacle
+			double edge_z = reduce_random_edge(FMath::FRandRange(1.0, max_z), z, rrt_class->board_size_z); //random edge parallel to z axis of cuboid obstacle
 			rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
 		}
 	}
 
 	if (algorithm == 0) {
 		rrt_class->execute_rrt();
-		draw_path(rrt_class->start);
+		draw_path();
 	}
 	else if (algorithm == 1) {
 		rrt_class->execute_rrt();
@@ -580,35 +625,33 @@ void ACPP_RRT_Controller::start_RRT() {
 	}
 }
 
-//Do usuniecia
-void ACPP_RRT_Controller::start_random_map_RRT() {
-	int obstacles = 20; //number of obstacles on board
-	delete rrt_class;
-	rrt_class = new RRT;
-	double max_x = rrt_class->board_size_x / 3.0; //max size cuboid on x coordinate
-	double max_y = rrt_class->board_size_y / 3.0; //max size cuboid on y coordinate
-	double max_z = rrt_class->board_size_z / 3.0; //max size cuboid on z coordinate
-	for (int i = 0; i < obstacles; ++i) {
-		double x = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random x cordinate of cuboid obstacle
-		double y = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random y cordinate of cuboid obstacle
-		double z = FMath::FRandRange(2.0, rrt_class->board_size_x * 0.9); //random z cordinate of cuboid obstacle
-		double edge_x = FMath::FRandRange(1.0, max_x); //random edge parallel to x axis of cuboid obstacle
-		double edge_y = FMath::FRandRange(1.0, max_y); //random edge parallel to y axis of cuboid obstacle
-		double edge_z = FMath::FRandRange(1.0, max_z); //random edge parallel to z axis of cuboid obstacle
-		rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
+void ACPP_RRT_Controller::draw_cuboids() {
+	for (Cuboid cub : rrt_class->cuboids) {
+		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x() * 0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
+		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
 	}
-
-	rrt_class->execute_rrt();
-	draw_path(rrt_class->start);
 }
 
-void ACPP_RRT_Controller::draw_path(Node* start_node) {
+void ACPP_RRT_Controller::set_stats_widget(string algorithm_type) {
+	VisualizationMenuInstance->set_algorithm_type(algorithm_type);
+
+	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
+
+	VisualizationMenuInstance->set_start_position(START_X, START_Y, START_Z);
+	VisualizationMenuInstance->set_finish_position(FINISH_X, FINISH_Y, FINISH_Z);
+
+	VisualizationMenuInstance->set_total_nodes(nodes.Num());
+	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
+	VisualizationMenuInstance->set_node_path(nodes_path);
+	VisualizationMenuInstance->set_path_length(rrt_class->path_lenght());
+}
+
+void ACPP_RRT_Controller::draw_path() {
 	UE_LOG(LogTemp, Warning, TEXT("Draw Path."));
 	queue<Node*> node_queue; //queue with drawing nodes
-	//node_queue.push(rrt_class->start);
-	node_queue.push(start_node);
+	node_queue.push(rrt_class->start);
+	//node_queue.push(start_node);
 	nodes_path = 0;
-	//path_length = 0;
 	while (!node_queue.empty()) {
 		Node* current = node_queue.front(); //current node
 		for (int i = 0; i < current->children.size(); ++i) {
@@ -648,21 +691,11 @@ void ACPP_RRT_Controller::draw_path(Node* start_node) {
 		//if (current->children[0] == current->children[0]->children[0])
 		//	break;
 	}
+
+	nodes_path += 2;
 	
-	for (Cuboid cub : rrt_class->cuboids) {
-		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x()*0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
-		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
-	}
-
-	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
-
-	VisualizationMenuInstance->set_start_position(START_X, START_Y, START_Z);
-	VisualizationMenuInstance->set_finish_position(FINISH_X, FINISH_Y, FINISH_Z);
-
-	VisualizationMenuInstance->set_total_nodes(nodes.Num());
-	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
-	VisualizationMenuInstance->set_node_path(nodes_path);
-	VisualizationMenuInstance->set_path_length(rrt_class->path_lenght());
+	draw_cuboids();
+	set_stats_widget(" RRT");
 }
 
 void ACPP_RRT_Controller::draw_path_connect() {
@@ -715,8 +748,8 @@ void ACPP_RRT_Controller::draw_path_connect() {
 		//	break;
 	}
 
+	node_queue.empty();
 	node_queue.push(rrt_class->finish);
-	nodes_path = 0;
 	while (!node_queue.empty()) {
 		Node* current = node_queue.front(); //current node
 		for (int i = 0; i < current->children.size(); ++i) {
@@ -769,20 +802,10 @@ void ACPP_RRT_Controller::draw_path_connect() {
 	lines.Add(GetWorld()->SpawnActor<ALineActor>(LineActorPath, standard_position, standard_rotation));
 	lines.Last()->SetLine(pos_node_1, pos_node_2);
 
-	for (Cuboid cub : rrt_class->cuboids) {
-		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x() * 0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
-		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
-	}
+	nodes_path += 2;
 
-	VisualizationMenuInstance->set_board_dimensions(BOARD_X, BOARD_Y, BOARD_Z);
-
-	VisualizationMenuInstance->set_start_position(START_X, START_Y, START_Z);
-	VisualizationMenuInstance->set_finish_position(FINISH_X, FINISH_Y, FINISH_Z);
-
-	VisualizationMenuInstance->set_total_nodes(nodes.Num());
-	VisualizationMenuInstance->set_total_obstacles(cuboids.Num());
-	VisualizationMenuInstance->set_node_path(nodes_path);
-	VisualizationMenuInstance->set_path_length(rrt_class->path_lenght());
+	draw_cuboids();
+	set_stats_widget(" RRT Connect");
 }
 
 void ACPP_RRT_Controller::clear_map() {
@@ -807,9 +830,12 @@ FVector ACPP_RRT_Controller::move_cord(FVector moving_vector) {
 	return moving_vector;
 }
 
-//void ACPP_RRT_Controller::reset_all_menus() {
-//
-//}
+void ACPP_RRT_Controller::reset_all_menus() {
+	MainMenuInstance->reset();
+	VisualizationMenuInstance->reset();
+	BoardTypeInstance->reset();
+	AlgorithmMenuInstance->reset();
+}
 
 void ACPP_RRT_Controller::BeginPlay() {
 	Super::BeginPlay();
@@ -848,6 +874,8 @@ void ACPP_RRT_Controller::BeginPlay() {
 		UE_LOG(LogTemp, Warning, TEXT("Create Visualizaton user widget."));
 		AlgorithmMenuInstance = CreateWidget<UAlgorithm_UserWidget>(this, AlgorithmUserWidget_Class);
 	}
+
+	reset_all_menus();
 
 	//FTimerHandle TimerHandle;
 	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 1.0f, false);
@@ -891,10 +919,6 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			AlgorithmMenuInstance->AddToViewport();
 			AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
-		/*if (VisualizationMenuInstance) {
-			VisualizationMenuInstance->AddToViewport();
-			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
-		}*/
 	}
 	if (BoardTypeInstance->random) {
 		//FTimerHandle TimerHandle;
@@ -908,10 +932,6 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			AlgorithmMenuInstance->AddToViewport();
 			AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
-		//if (VisualizationMenuInstance) {
-		//	VisualizationMenuInstance->AddToViewport();
-		//	VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
-		//}
 	}
 	if (BoardTypeInstance->back) {
 		MainMenuInstance->reset();
@@ -989,4 +1009,9 @@ ACPP_RRT_Controller::ACPP_RRT_Controller() {
 
 	standard_rotation = FRotator(0.0f, 0.0f, 0.0f);
 	standard_position = FVector(0.0f, 0.0f, 0.0f);
+}
+
+ACPP_RRT_Controller::~ACPP_RRT_Controller() {
+	clear_map();
+	delete rrt_class;
 }

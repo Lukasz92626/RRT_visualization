@@ -6,7 +6,10 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include <string>
 #include "Visualization_UserWidget.generated.h"
+
+using namespace std;
 
 /**
  * 
@@ -26,6 +29,7 @@ public:
 	UFUNCTION()
 	void click_exit();
 
+	void set_algorithm_type(string algorithm_type);
 	void set_board_dimensions(double length, double width, double height);
 	void set_start_position(double x, double y, double z);
 	void set_finish_position(double x, double y, double z);
@@ -33,6 +37,10 @@ public:
 	void set_total_obstacles(int num_obstacles);
 	void set_node_path(int num_nodes);
 	void set_path_length(double length);
+
+	//Algorithm type
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_Algorithm;
 
 	//Board dimensions
 	UPROPERTY(meta = (BindWidget))

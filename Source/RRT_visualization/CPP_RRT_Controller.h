@@ -12,6 +12,7 @@
 #include "Algorithm_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
+#include <string>
 #include "CPP_RRT_Controller.generated.h"
 
 class Point;
@@ -35,6 +36,7 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
+	~ACPP_RRT_Controller();
 
 	UMainMenu_UserWidget* MainMenuInstance; //Instance of main menu class
 	UVisualization_UserWidget* VisualizationMenuInstance; //Instance of visualization menu class
@@ -84,12 +86,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	double reduce_random_edge(double edge, double cordinate, double board_size);
 	void start_RRT();
-	void start_random_map_RRT();
+	void draw_cuboids();
+	void set_stats_widget(string algorithm_type);
+	//void start_random_map_RRT();
 	//void draw_path(RRT* rrt_class);
 	//void draw_path(Node* first_node);
-	void draw_path(Node* start_node);
+	void draw_path();
 	void draw_path_connect();
 	void clear_map();
 	FVector move_cord(FVector move_vector);
+	void reset_all_menus();
 };
