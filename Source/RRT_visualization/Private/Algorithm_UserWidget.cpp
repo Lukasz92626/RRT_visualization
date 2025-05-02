@@ -13,6 +13,9 @@ void UAlgorithm_UserWidget::NativeConstruct() {
 	if (Button_Classic) {
 		Button_Classic->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_classic);
 	}
+	if (Button_Bidirectional) {
+		Button_Connect->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_bidirectional);
+	}
 	if (Button_Connect) {
 		Button_Connect->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_connect);
 	}
@@ -26,6 +29,7 @@ void UAlgorithm_UserWidget::NativeConstruct() {
 
 void UAlgorithm_UserWidget::reset() {
 	classic = false;
+	bidirectional = false;
 	connect = false;
 	other = false;
 	back = false;
@@ -34,6 +38,12 @@ void UAlgorithm_UserWidget::reset() {
 void UAlgorithm_UserWidget::click_classic() {
 	UE_LOG(LogTemp, Warning, TEXT("Clicked classic in board type menu."));
 	classic = true;
+	this->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UAlgorithm_UserWidget::click_bidirectional() {
+	UE_LOG(LogTemp, Warning, TEXT("Clicked bidirectional in board type menu."));
+	bidirectional = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 

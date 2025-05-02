@@ -298,21 +298,6 @@ public:
 		new_node->parent = parent;
 	}
 
-	void save_path() {
-		if (!finish)
-			return;
-		Node* current = finish; //current node
-		planned_path.clear();
-		while (current->parent != nullptr) {
-			planned_path.push_front(current);
-			current->set_color(1); //color of path
-			current = current->parent;
-		}
-		planned_path.push_front(current);
-		start->set_color(2);
-		finish->set_color(3);
-	}
-
 	void print_path() {
 		for (int i = 0; i < planned_path.size(); ++i) {
 			UE_LOG(LogTemp, Warning, TEXT("%d: (%f, %f, %f)"),
@@ -323,14 +308,6 @@ public:
 		}
 	}
 
-	bool check_collisions(Node* nearest, Node* new_node) {
-		for (Cuboid cub : cuboids) {
-			if (cub.node_inside(new_node) || cub.path_inside(nearest, new_node))
-				return false;
-		}
-		return true;
-	}
-
 	void print_cuboids() {
 		int size = cuboids.size(); //size of cuboids vector
 		for (int i = 0; i < size; ++i) {
@@ -338,6 +315,35 @@ public:
 			cuboids[i].first.print_values();
 			cuboids[i].second.print_values();
 		}
+	}
+
+	void print_begin_informations(string algorithm) {
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *FString(algorithm.c_str()));
+		UE_LOG(LogTemp, Warning, TEXT("Start: "));
+		start->print_values();
+		UE_LOG(LogTemp, Warning, TEXT("Finish: "));
+		finish->print_values();
+		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
+	}
+
+	void print_end_informations(int iterator) {
+		if (iterator >= max_iterations) {
+			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Found path. Interations: %d"), iterator);
+			UE_LOG(LogTemp, Warning, TEXT("Path:"));
+			save_path();
+			print_path();
+		}
+	}
+
+	bool check_collisions(Node* nearest, Node* new_node) {
+		for (Cuboid cub : cuboids) {
+			if (cub.node_inside(new_node) || cub.path_inside(nearest, new_node))
+				return false;
+		}
+		return true;
 	}
 
 	double path_lenght() {
@@ -358,15 +364,25 @@ public:
 		node->set_z(other_node->get_z() + (dz / dist_near) * MAX_DIST);
 	}
 
+	virtual void save_path() {
+		if (!finish)
+			return;
+		Node* current = finish; //current node
+		planned_path.clear();
+		while (current->parent != nullptr) {
+			planned_path.push_front(current);
+			current->set_color(1); //color of path
+			current = current->parent;
+		}
+		planned_path.push_front(current);
+		start->set_color(2);
+		finish->set_color(3);
+	}
+
 	virtual void execute_rrt() {
-		UE_LOG(LogTemp, Warning, TEXT("RRT."));
 		bool is_finish = false; //contains bool information about distance to finish
 		int i = 0;
-		UE_LOG(LogTemp, Warning, TEXT("Start: "));
-		start->print_values();
-		UE_LOG(LogTemp, Warning, TEXT("Finish: "));
-		finish->print_values();
-		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
+		print_begin_informations("Execute RRT.");
 		print_cuboids();
 		do {
 			Node* new_node = nullptr; //new node
@@ -379,13 +395,6 @@ public:
 			} while (dist < min_distance || !check_collisions(nearest, new_node));
 
 			if (dist > max_distance) {
-				//double dx = new_node->get_x() - nearest->get_x(); //x direction vector component
-				//double dy = new_node->get_y() - nearest->get_y(); //y direction vector component
-				//double dz = new_node->get_z() - nearest->get_z(); //z direction vector component
-				//double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
-				//new_node->set_x(nearest->get_x() + (dx / dist_near) * MAX_DIST);
-				//new_node->set_y(nearest->get_y() + (dy / dist_near) * MAX_DIST);
-				//new_node->set_z(nearest->get_z() + (dz / dist_near) * MAX_DIST);
 				move_node_closer_other(new_node, nearest);
 			}
 			is_finish = verify_finish(new_node, finish);
@@ -397,24 +406,17 @@ public:
 				add_node_to_tree(new_node, nearest);
 			++i;
 		} while (!is_finish && i <= max_iterations);
-		if (i >= max_iterations) {
-			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Found path. Interations: %d"), i);
-			UE_LOG(LogTemp, Warning, TEXT("Path:"));
-			save_path();
-			print_path();
-		}
+		print_end_informations(i);
 	}
 };
 
-class RRT_Connect : public RRT {
+class Bidirectional_RRT : public RRT {
 public:
-	Node* connect_node_1;
-	Node* connect_node_2;
+	Node* connect_node; //node which connect trees
+	Node* connect_node_1; //first node which connect trees
+	Node* connect_node_2; //second node which connect trees
 
-	~RRT_Connect() {
+	~Bidirectional_RRT() {
 		delete finish;
 	}
 
@@ -461,7 +463,7 @@ public:
 		}
 		else
 			add_node_to_tree(new_node, nearest);*/
-		
+
 		add_node_to_tree(new_node, nearest);
 
 		//nearest_finish_tree = find_nearest_node(new_node, current_finish);
@@ -482,7 +484,7 @@ public:
 		return find_connect_node(new_node, current_finish);
 	}
 
-	void save_path_connect(Node* connect_node) {
+	void save_path() {
 		if (!connect_node)
 			return;
 		Node* current = connect_node_1; //current node
@@ -493,7 +495,7 @@ public:
 			current = current->parent;
 		}
 		planned_path.push_front(current);
-		
+
 		current = connect_node_2;
 		while (current->parent != nullptr) {
 			planned_path.push_back(current);
@@ -507,9 +509,26 @@ public:
 		connect_node_1->set_color(4);
 	}
 
-	Node* extend(Node* current_start, Node* current_finish) {
-		Node* nearest = find_nearest_node(current_finish, current_start); //nearest node to finish node
-		Node* new_node = new Node(current_finish->get_x(), current_finish->get_y(), current_finish->get_z());
+	void execute_rrt() {
+		connect_node = nullptr;
+		Node* new_node = nullptr; //new node in tree
+		int i = 0;
+		print_begin_informations("Execute Bidirectional RRT.");
+		do {
+			connect_node = find_new_node(start, finish);
+			if (connect_node)
+				break;
+			connect_node = find_new_node(finish, start);
+		} while (!connect_node && i <= max_iterations);
+		print_end_informations(i);
+	}
+};
+
+class RRT_Connect : public Bidirectional_RRT {
+public:
+	Node* extend(Node* current_start, Node* target) {
+		Node* nearest = find_nearest_node(target, current_start); //nearest node to finish node
+		Node* new_node = new Node(target->get_x(), target->get_y(), target->get_z()); //new node in tree
 		move_node_closer_other(new_node, nearest);
 		if (check_collisions(nearest, new_node)) {
 			add_node_to_tree(new_node, nearest);
@@ -520,22 +539,11 @@ public:
 	}
 
 	void execute_rrt() {
-		UE_LOG(LogTemp, Warning, TEXT("Execute RRT Connect."));
-		//bool is_finish = false; //contains bool information about distance to finish
-		Node* connect_node = nullptr; //node which connect trees
+		connect_node = nullptr;
 		Node* new_node = nullptr; //new node in tree
 		int i = 0;
-		UE_LOG(LogTemp, Warning, TEXT("Start: "));
-		start->print_values();
-		UE_LOG(LogTemp, Warning, TEXT("Finish: "));
-		finish->print_values();
-		UE_LOG(LogTemp, Warning, TEXT("Cuboids: "));
-		print_cuboids();
+		print_begin_informations("Execute RRT Connect.");
 		do {
-			/*connect_node = find_new_node(start, finish);
-			if (connect_node)
-				break;
-			connect_node = find_new_node(finish, start);*/
 			new_node = extend(start, finish);
 			if (new_node)
 				connect_node = find_connect_node(new_node, finish);
@@ -552,15 +560,7 @@ public:
 				connect_node = find_new_node(finish, start);
 			++i;
 		} while (!connect_node && i <= max_iterations);
-		if (i >= max_iterations) {
-			UE_LOG(LogTemp, Warning, TEXT("Max iterations. Path not found."));
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Found path. Interations: %d"), i);
-			UE_LOG(LogTemp, Warning, TEXT("Path:"));
-			save_path_connect(connect_node);
-			print_path();
-		}
+		print_end_informations(i);
 	}
 };
 
@@ -577,6 +577,10 @@ void ACPP_RRT_Controller::start_RRT() {
 		rrt_class = new RRT;
 	}
 	else if (algorithm == 1) {
+		UE_LOG(LogTemp, Warning, TEXT("Create Bidirectional_RRT class."));
+		rrt_class = new Bidirectional_RRT;
+	}
+	else if (algorithm == 2) {
 		UE_LOG(LogTemp, Warning, TEXT("Create RRT_Connect class."));
 		rrt_class = new RRT_Connect;
 	}
@@ -619,7 +623,7 @@ void ACPP_RRT_Controller::start_RRT() {
 		rrt_class->execute_rrt();
 		draw_path();
 	}
-	else if (algorithm == 1) {
+	else if (algorithm == 1 || algorithm == 2) {
 		rrt_class->execute_rrt();
 		draw_path_connect();
 	}
@@ -955,7 +959,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	if (AlgorithmMenuInstance->connect) {
+	if (AlgorithmMenuInstance->bidirectional) {
 		algorithm = 1;
 		start_RRT();
 		AlgorithmMenuInstance->reset();
@@ -966,8 +970,19 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	if (AlgorithmMenuInstance->other) {
+	if (AlgorithmMenuInstance->connect) {
 		algorithm = 2;
+		start_RRT();
+		AlgorithmMenuInstance->reset();
+		VisualizationMenuInstance->reset();
+
+		if (VisualizationMenuInstance) {
+			VisualizationMenuInstance->AddToViewport();
+			VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	if (AlgorithmMenuInstance->other) {
+		algorithm = 3;
 		start_RRT();
 		AlgorithmMenuInstance->reset();
 		VisualizationMenuInstance->reset();
