@@ -19,6 +19,9 @@ class Point;
 class Node;
 class Cuboid;
 class RRT;
+class Bidirectional_RRT;
+class RRT_Connect;
+class RRT_Star;
 
 /**
  * 
@@ -36,7 +39,7 @@ class RRT_VISUALIZATION_API ACPP_RRT_Controller : public APlayerController
 public:
 	// Sets default values for this controller's properties
 	ACPP_RRT_Controller();
-	~ACPP_RRT_Controller();
+	//~ACPP_RRT_Controller();
 
 	UMainMenu_UserWidget* MainMenuInstance; //Instance of main menu class
 	UVisualization_UserWidget* VisualizationMenuInstance; //Instance of visualization menu class

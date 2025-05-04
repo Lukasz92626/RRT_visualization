@@ -13,9 +13,9 @@ void UAlgorithm_UserWidget::NativeConstruct() {
 	if (Button_Classic) {
 		Button_Classic->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_classic);
 	}
-	if (Button_Bidirectional) {
-		Button_Connect->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_bidirectional);
-	}
+	/*if (Button_Bidi) {
+		Button_Connect->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_bidirect);
+	}*/
 	if (Button_Connect) {
 		Button_Connect->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_connect);
 	}
@@ -23,7 +23,7 @@ void UAlgorithm_UserWidget::NativeConstruct() {
 		Button_Other->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_other);
 	}
 	if (Button_Back) {
-		Button_Back->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_back);
+		Button_Back->OnClicked.AddDynamic(this, &UAlgorithm_UserWidget::click_bidirect);
 	}
 }
 
@@ -41,7 +41,7 @@ void UAlgorithm_UserWidget::click_classic() {
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UAlgorithm_UserWidget::click_bidirectional() {
+void UAlgorithm_UserWidget::click_bidirect() {
 	UE_LOG(LogTemp, Warning, TEXT("Clicked bidirectional in board type menu."));
 	bidirectional = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
@@ -56,7 +56,7 @@ void UAlgorithm_UserWidget::click_connect() {
 void UAlgorithm_UserWidget::click_other() {
 	UE_LOG(LogTemp, Warning, TEXT("Clicked other RRT in board type menu."));
 	other = true;
-	//this->SetVisibility(ESlateVisibility::Hidden);
+	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UAlgorithm_UserWidget::click_back() {

@@ -30,7 +30,7 @@ public:
 	UFUNCTION()
 	void click_classic();
 	UFUNCTION()
-	void click_bidirectional();
+	void click_bidirect();
 	UFUNCTION()
 	void click_connect();
 	UFUNCTION()
@@ -43,8 +43,8 @@ public:
 	class UButton* Button_Classic;
 
 	//Button bidirectional RRT
-	UPROPERTY(meta = (BindWidget))
-	class UButton* Button_Bidirectional;
+	//UPROPERTY(meta = (BindWidget))
+	//class UButton* Button_Bidi;
 
 	//Button RRT connect
 	UPROPERTY(meta = (BindWidget))
