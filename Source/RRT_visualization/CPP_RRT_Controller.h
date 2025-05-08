@@ -10,6 +10,7 @@
 #include "Visualization_UserWidget.h"
 #include "BoardType_UserWidget.h"
 #include "Algorithm_UserWidget.h"
+#include "Credits_UserWidget.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/PlayerController.h"
 #include <string>
@@ -45,6 +46,8 @@ public:
 	UVisualization_UserWidget* VisualizationMenuInstance; //Instance of visualization menu class
 	UBoardType_UserWidget* BoardTypeInstance; //Instance of board type menu class
 	UAlgorithm_UserWidget* AlgorithmMenuInstance; //Instance of algorithm menu class
+	UCredits_UserWidget* CreditsMenuInstance; //Instance of credits menu class
+
 	
 	//Node actor
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Node Actor")
@@ -77,6 +80,8 @@ public:
 	TSubclassOf<UBoardType_UserWidget> BoardTypeUserWidget_Class;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
 	TSubclassOf<UAlgorithm_UserWidget> AlgorithmUserWidget_Class;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "User Widget")
+	TSubclassOf<UCredits_UserWidget> CreditsUserWidget_Class;
 
 	FRotator standard_rotation; //standard rotation (0.0f, 0.0f, 0.0f)
 	FVector standard_position; //standard position (0.0f, 0.0f, 0.0f)

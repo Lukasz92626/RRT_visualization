@@ -35,6 +35,7 @@ void UMainMenu_UserWidget::click_start() {
 void UMainMenu_UserWidget::click_credits() {
 	UE_LOG(LogTemp, Warning, TEXT("Clicked Credits in Main Menu."));
 	credits = true;
+	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UMainMenu_UserWidget::click_exit() {

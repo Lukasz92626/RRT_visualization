@@ -36,31 +36,31 @@ void UAlgorithm_UserWidget::reset() {
 }
 
 void UAlgorithm_UserWidget::click_classic() {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked classic in board type menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked classic in algorithm menu."));
 	classic = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UAlgorithm_UserWidget::click_bidirect() {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked bidirectional in board type menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked bidirectional in algorithm menu."));
 	bidirectional = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UAlgorithm_UserWidget::click_connect() {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked connect in board type menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked connect in algorithm menu."));
 	connect = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UAlgorithm_UserWidget::click_other() {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked other RRT in board type menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked other RRT in algorithme menu."));
 	other = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UAlgorithm_UserWidget::click_back() {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked back in board type menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked back in algorithm menu."));
 	back = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }

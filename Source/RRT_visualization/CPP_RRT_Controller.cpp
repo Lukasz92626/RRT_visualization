@@ -93,7 +93,7 @@ public:
 	double cost; //cost of path to start
 	Node* parent; //pointer to parent node
 	vector<Node*> children; //vector of pointers to children nodes
-	Node() : x(0.0), y(0.0), z(0.0), color(0) {
+	Node() : x(0.0), y(0.0), z(0.0), color(0), cost(0.0) {
 		parent = nullptr;
 	}
 	Node(double nx, double ny, double nz) : x(nx), y(ny), z(nz), color(0), cost(0.0) {
@@ -498,6 +498,7 @@ public:
 			if (connect_node)
 				break;
 			connect_node = find_new_node(finish, start);
+			i++;
 		} while (!connect_node && i <= max_iterations);
 		return print_end_informations(i);
 	}
@@ -948,6 +949,8 @@ void ACPP_RRT_Controller::reset_all_menus() {
 		BoardTypeInstance->reset();
 	if(AlgorithmMenuInstance)
 		AlgorithmMenuInstance->reset();
+	if (CreditsMenuInstance)
+		CreditsMenuInstance->reset();
 }
 
 void ACPP_RRT_Controller::BeginPlay() {
@@ -984,8 +987,13 @@ void ACPP_RRT_Controller::BeginPlay() {
 	}
 
 	if (AlgorithmUserWidget_Class) {
-		UE_LOG(LogTemp, Warning, TEXT("Create Visualizaton user widget."));
+		UE_LOG(LogTemp, Warning, TEXT("Create Algorithm user widget."));
 		AlgorithmMenuInstance = CreateWidget<UAlgorithm_UserWidget>(this, AlgorithmUserWidget_Class);
+	}
+
+	if (CreditsUserWidget_Class) {
+		UE_LOG(LogTemp, Warning, TEXT("Create Credits user widget."));
+		CreditsMenuInstance = CreateWidget<UCredits_UserWidget>(this, CreditsUserWidget_Class);
 	}
 
 	reset_all_menus();
@@ -1009,6 +1017,30 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				BoardTypeInstance->reset();
 				BoardTypeInstance->AddToViewport();
 				BoardTypeInstance->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
+
+		if (MainMenuInstance) {
+			if (MainMenuInstance->credits) {
+				MainMenuInstance->reset();
+				if (CreditsMenuInstance) {
+					UE_LOG(LogTemp, Warning, TEXT("CreditsMenuInstance Visible."));
+					CreditsMenuInstance->reset();
+					CreditsMenuInstance->AddToViewport();
+					CreditsMenuInstance->SetVisibility(ESlateVisibility::Visible);
+				}
+			}
+		}
+	}
+
+	//Credits menu
+	if (CreditsMenuInstance) {
+		if (CreditsMenuInstance->exit) {
+			CreditsMenuInstance->reset();
+			if (MainMenuInstance) {
+				MainMenuInstance->reset();
+				MainMenuInstance->AddToViewport();
+				MainMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
 	}

@@ -18,7 +18,7 @@ void UVisualization_UserWidget::reset() {
 }
 
 void UVisualization_UserWidget::click_exit() {
-	UE_LOG(LogTemp, Warning, TEXT("Click exit in Main Menu."));
+	UE_LOG(LogTemp, Warning, TEXT("Click exit in Visualization menu."));
 	exit = true;
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
