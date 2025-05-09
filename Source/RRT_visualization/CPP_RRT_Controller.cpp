@@ -172,16 +172,29 @@ class Cuboid {
 public:
 	//First point must have higher or equal cordinate than second point.
 	Point first; //closer point to (0,0,0)
-	Point second; //further point from (0,0,0)
+	//Point second; //further point from (0,0,0)
+	double edge_x;
+	double edge_y;
+	double edge_z;
 
 	Cuboid() {
+		edge_x = 1;
+		edge_y = 2;
+		edge_z = 3;
 	}
-	Cuboid(double nx_1, double ny_1, double nz_1, double nx_2, double ny_2, double nz_2) {
+	/*Cuboid(double nx_1, double ny_1, double nz_1, double nx_2, double ny_2, double nz_2) {
 		first.set_cordinates(nx_1, ny_1, nz_1);
 		second.set_cordinates(nx_2, ny_2, nz_2);
+	}*/
+	Cuboid(double nx_1, double ny_1, double nz_1, double n_edge_x, double n_edge_y, double n_edge_z) {
+		first.set_cordinates(nx_1, ny_1, nz_1);
+		edge_x = n_edge_x;
+		edge_y = n_edge_y;
+		edge_z = n_edge_z;
+		//second.set_cordinates(nx_2, ny_2, nz_2);
 	}
 
-	double get_edge_x() {
+	/*double get_edge_x() {
 		return first.get_x() - second.get_x();
 	}
 	double get_edge_y() {
@@ -189,21 +202,58 @@ public:
 	}
 	double get_edge_z() {
 		return first.get_z() - second.get_z();
+	}*/
+
+	double get_edge_x() {
+		return edge_x;
+	}
+	double get_edge_y() {
+		return edge_y;
+	}
+	double get_edge_z() {
+		return edge_z;
 	}
 
-	bool node_inside(Node* cur_node) {
+	double get_edge_index(int ind) {
+		switch (ind) {
+		case 0:
+			return edge_x;
+		case 1:
+			return edge_y;
+		case 2:
+			return edge_z;
+		}
+		return edge_x;
+	}
+
+	void print_edges() {
+		UE_LOG(LogTemp, Warning, TEXT("%f x %f x %f"), edge_x, edge_y, edge_z);
+	}
+
+	/*bool node_inside(Node* cur_node) {
 		if ((first.get_x() <= cur_node->get_x() && first.get_y() <= cur_node->get_y() && first.get_z() <= cur_node->get_z()) && (second.get_x() > cur_node->get_x() && second.get_y() > cur_node->get_y() && second.get_z() > cur_node->get_z())) {
 			return true;
 		}
 		return false;
+	}*/
+	bool node_inside(Node* cur_node) {
+		double x = cur_node->get_x(); //x cordinate of current node
+		double y = cur_node->get_y(); //y cordinate of current node
+		double z = cur_node->get_z(); //z cordinate of current node
+
+		return (x >= first.get_x() && x < first.get_x() + edge_x) &&
+			(y >= first.get_y() && y < first.get_y() + edge_y) &&
+			(z >= first.get_z() && z < first.get_z() + edge_z);
 	}
 
 	bool path_inside(Node* nearest, Node* new_node) {
 		double t_min = 0.0;
 		double t_max = 1.0;
 		for (int i = 0; i < 3; ++i) {
-			double box_min = min(first.get_index(i), second.get_index(i));
-			double box_max = max(first.get_index(i), second.get_index(i));
+			//double box_min = min(first.get_index(i), second.get_index(i));
+			double box_min = first.get_index(i);
+			//double box_max = max(first.get_index(i), second.get_index(i));
+			double box_max = first.get_index(i) + get_edge_index(i);
 			double direction = new_node->get_index(i) - nearest->get_index(i);
 			if (abs(direction) < 1e-8) {
 				if (!(box_min <= nearest->get_index(i) && nearest->get_index(i) <= box_max))
@@ -311,7 +361,8 @@ public:
 		for (int i = 0; i < size; ++i) {
 			UE_LOG(LogTemp, Warning, TEXT("%d"), i + 1);
 			cuboids[i].first.print_values();
-			cuboids[i].second.print_values();
+			cuboids[i].print_edges();
+			//cuboids[i].second.print_values();
 		}
 	}
 
@@ -356,7 +407,7 @@ public:
 		double dx = node->get_x() - other_node->get_x(); //x direction vector component
 		double dy = node->get_y() - other_node->get_y(); //y direction vector component
 		double dz = node->get_z() - other_node->get_z(); //z direction vector component
-		double dist_near = sqrt(dx * dx + dy * dy + dz * dz);
+		double dist_near = sqrt(dx * dx + dy * dy + dz * dz); //distance between nodes
 		node->set_x(other_node->get_x() + (dx / dist_near) * max_distance);
 		node->set_y(other_node->get_y() + (dy / dist_near) * max_distance);
 		node->set_z(other_node->get_z() + (dz / dist_near) * max_distance);
@@ -683,19 +734,33 @@ void ACPP_RRT_Controller::start_RRT() {
 	}
 
 	if (board_type == 0) {
-		rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
-		rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
-		rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
-		rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
-		rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
-		rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
-		rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
-		rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
-		rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
-		rrt_class->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
-		rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
-		rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
-		rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+		//rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
+		//rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
+		//rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
+		//rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
+		//rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
+		//rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
+		//rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
+		//rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
+		//rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
+		//rrt_class->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
+		//rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
+		//rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
+		//rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+
+		rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 1, 2, 4));
+		rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 2, 5, 2));
+		rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 4, 5, 3));
+		rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 4, 4, 5));
+		rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 4, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 5, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 5, 5, 4));
+		rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 3, 2, 2));
+		rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 38, 4, 6)); //dlugi poziomy
+		rrt_class->cuboids.push_back(Cuboid(40, 33, 3, 5, 4, 33)); //dlugi pionowy
+		rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 5, 43, 6)); //dlugi poziomy
+		rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 6, 9, 5)); //sredni
+		rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 6, 5, 36)); //dlugi pionowy
 	}
 	else if (board_type == 1) {
 		int obstacles = 20; //number of obstacles on board
@@ -709,7 +774,7 @@ void ACPP_RRT_Controller::start_RRT() {
 			double edge_x = reduce_random_edge(FMath::FRandRange(1.0, max_x), x, rrt_class->board_size_x); //random edge parallel to x axis of cuboid obstacle
 			double edge_y = reduce_random_edge(FMath::FRandRange(1.0, max_y), y, rrt_class->board_size_y); //random edge parallel to y axis of cuboid obstacle
 			double edge_z = reduce_random_edge(FMath::FRandRange(1.0, max_z), z, rrt_class->board_size_z); //random edge parallel to z axis of cuboid obstacle
-			rrt_class->cuboids.push_back(Cuboid(x, y, z, x + edge_x, y + edge_y, z + edge_z));
+			rrt_class->cuboids.push_back(Cuboid(x, y, z, edge_x, edge_y, edge_z));
 		}
 	}
 
@@ -737,7 +802,7 @@ void ACPP_RRT_Controller::start_RRT() {
 
 void ACPP_RRT_Controller::draw_cuboids() {
 	for (Cuboid cub : rrt_class->cuboids) {
-		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() - cub.get_edge_x() * 0.5, cub.first.get_y() - cub.get_edge_y() * 0.5, cub.first.get_z() - cub.get_edge_z() * 0.5)), standard_rotation));
+		cuboids.Add(GetWorld()->SpawnActor<ACuboidActor>(CuboidActorObstacle, move_cord(FVector(cub.first.get_x() + cub.get_edge_x() * 0.5, cub.first.get_y() + cub.get_edge_y() * 0.5, cub.first.get_z() + cub.get_edge_z() * 0.5)), standard_rotation));
 		cuboids.Last()->SetBoxDimensions(move_cord(FVector(cub.get_edge_x(), cub.get_edge_y(), cub.get_edge_z())));
 	}
 }
