@@ -182,10 +182,6 @@ public:
 		edge_y = 2;
 		edge_z = 3;
 	}
-	/*Cuboid(double nx_1, double ny_1, double nz_1, double nx_2, double ny_2, double nz_2) {
-		first.set_cordinates(nx_1, ny_1, nz_1);
-		second.set_cordinates(nx_2, ny_2, nz_2);
-	}*/
 	Cuboid(double nx_1, double ny_1, double nz_1, double n_edge_x, double n_edge_y, double n_edge_z) {
 		first.set_cordinates(nx_1, ny_1, nz_1);
 		edge_x = n_edge_x;
@@ -230,12 +226,6 @@ public:
 		UE_LOG(LogTemp, Warning, TEXT("%f x %f x %f"), edge_x, edge_y, edge_z);
 	}
 
-	/*bool node_inside(Node* cur_node) {
-		if ((first.get_x() <= cur_node->get_x() && first.get_y() <= cur_node->get_y() && first.get_z() <= cur_node->get_z()) && (second.get_x() > cur_node->get_x() && second.get_y() > cur_node->get_y() && second.get_z() > cur_node->get_z())) {
-			return true;
-		}
-		return false;
-	}*/
 	bool node_inside(Node* cur_node) {
 		double x = cur_node->get_x(); //x cordinate of current node
 		double y = cur_node->get_y(); //y cordinate of current node
@@ -362,7 +352,6 @@ public:
 			UE_LOG(LogTemp, Warning, TEXT("%d"), i + 1);
 			cuboids[i].first.print_values();
 			cuboids[i].print_edges();
-			//cuboids[i].second.print_values();
 		}
 	}
 
@@ -734,33 +723,61 @@ void ACPP_RRT_Controller::start_RRT() {
 	}
 
 	if (board_type == 0) {
-		//rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 4, 7, 8));
-		//rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 3, 45, 3));
-		//rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 34, 10, 7));
-		//rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 6, 7, 43));
-		//rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 19, 15, 17));
-		//rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 24, 27, 10));
-		//rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 10, 9, 7));
-		//rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 38, 34, 42));
-		//rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 43, 27, 33)); //dlugi poziomy
-		//rrt_class->cuboids.push_back(Cuboid(40, 37, 3, 45, 33, 36)); //dlugi pionowy
-		//rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 30, 47, 33)); //dlugi poziomy
-		//rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 43, 47, 45)); //sredni
-		//rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 43, 13, 43)); //dlugi pionowy
+		//rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 1, 2, 4));
+		//rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 2, 5, 2));
+		//rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 4, 5, 3));
+		//rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 4, 4, 5));
+		//rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 4, 5, 5));
+		//rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 5, 5, 5));
+		//rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 5, 5, 4));
+		//rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 3, 2, 2));
+		//rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 38, 4, 6)); //dlugi poziomy
+		//rrt_class->cuboids.push_back(Cuboid(40, 33, 3, 5, 4, 33)); //dlugi pionowy
+		//rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 5, 43, 6)); //dlugi poziomy
+		//rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 6, 9, 5)); //sredni
+		//rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 6, 5, 36)); //dlugi pionowy
 
-		rrt_class->cuboids.push_back(Cuboid(3, 5, 4, 1, 2, 4));
-		rrt_class->cuboids.push_back(Cuboid(1, 40, 1, 2, 5, 2));
-		rrt_class->cuboids.push_back(Cuboid(30, 5, 4, 4, 5, 3));
-		rrt_class->cuboids.push_back(Cuboid(2, 3, 38, 4, 4, 5));
-		rrt_class->cuboids.push_back(Cuboid(15, 10, 12, 4, 5, 5));
-		rrt_class->cuboids.push_back(Cuboid(19, 22, 5, 5, 5, 5));
-		rrt_class->cuboids.push_back(Cuboid(5, 4, 3, 5, 5, 4));
-		rrt_class->cuboids.push_back(Cuboid(35, 32, 40, 3, 2, 2));
-		rrt_class->cuboids.push_back(Cuboid(5, 23, 27, 38, 4, 6)); //dlugi poziomy
-		rrt_class->cuboids.push_back(Cuboid(40, 33, 3, 5, 4, 33)); //dlugi pionowy
-		rrt_class->cuboids.push_back(Cuboid(25, 4, 27, 5, 43, 6)); //dlugi poziomy
-		rrt_class->cuboids.push_back(Cuboid(37, 38, 40, 6, 9, 5)); //sredni
-		rrt_class->cuboids.push_back(Cuboid(37, 8, 7, 6, 5, 36)); //dlugi pionowy
+		//outer edges
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 5, 40, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 5, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 5, 5, 5, 40));
+
+		rrt_class->cuboids.push_back(Cuboid(40, 5, 5, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(40, 5, 5, 5, 5, 40));
+		rrt_class->cuboids.push_back(Cuboid(5, 40, 5, 40, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 40, 5, 5, 5, 40));
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 40, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 40, 40, 5, 5));
+
+		//plus edges
+		rrt_class->cuboids.push_back(Cuboid(40, 40, 5, 5, 5, 40));
+		rrt_class->cuboids.push_back(Cuboid(40, 5, 40, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 40, 40, 40, 5, 5));
+
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 22.5, 40, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 22.5, 5, 40, 5, 5));
+
+		rrt_class->cuboids.push_back(Cuboid(22.5, 5, 5, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 5, 22.5, 5, 40, 5));
+
+		rrt_class->cuboids.push_back(Cuboid(22.5, 5, 5, 5, 5, 40));
+		rrt_class->cuboids.push_back(Cuboid(5, 22.5, 5, 5, 5, 40));
+
+
+		rrt_class->cuboids.push_back(Cuboid(5, 40, 22.5, 40, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(5, 22.5, 40, 40, 5, 5));
+
+		rrt_class->cuboids.push_back(Cuboid(22.5, 5, 40, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(40, 5, 22.5, 5, 40, 5));
+
+		rrt_class->cuboids.push_back(Cuboid(22.5, 40, 5, 5, 5, 40));
+		rrt_class->cuboids.push_back(Cuboid(40, 22.5, 5, 5, 5, 40));
+
+		//interior edges
+		rrt_class->cuboids.push_back(Cuboid(5, 22.5, 22.5, 40, 5, 5));
+		rrt_class->cuboids.push_back(Cuboid(22.5, 5, 22.5, 5, 40, 5));
+		rrt_class->cuboids.push_back(Cuboid(22.5, 22.5, 5, 5, 5, 40));
+
 	}
 	else if (board_type == 1) {
 		int obstacles = 20; //number of obstacles on board
@@ -1062,9 +1079,6 @@ void ACPP_RRT_Controller::BeginPlay() {
 	}
 
 	reset_all_menus();
-
-	//FTimerHandle TimerHandle;
-	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_RRT, 1.0f, false);
 }
 
 void ACPP_RRT_Controller::Tick(float DeltaTime) {
