@@ -702,6 +702,8 @@ double ACPP_RRT_Controller::reduce_random_edge(double edge, double cordinate, do
 }
 
 void ACPP_RRT_Controller::start_RRT() {
+	double StartTime = FPlatformTime::Seconds();
+
 	bool found_path = false; //information about founded path
 	delete rrt_class;
 	rrt_class = nullptr;
@@ -795,23 +797,27 @@ void ACPP_RRT_Controller::start_RRT() {
 		}
 	}
 
+	found_path = rrt_class->execute_rrt();
+
+	double EndTime = FPlatformTime::Seconds();
+	double Duration = EndTime - StartTime;
+	UE_LOG(LogTemp, Warning, TEXT("Time: %f seconds"), Duration);
+
+	VisualizationMenuInstance->set_time(Duration);
+
 	if (algorithm == 0) {
-		found_path = rrt_class->execute_rrt();
 		if (found_path)
 			draw_path();
 	}
 	else if (algorithm == 1) {
-		found_path = rrt_class->execute_rrt();
 		if (found_path)
 			draw_path_connect();
 	}
 	else if (algorithm == 2) {
-		found_path = rrt_class->execute_rrt();
 		if (found_path)
 			draw_path_connect();
 	}
 	else if (algorithm == 3) {
-		found_path = rrt_class->execute_rrt();
 		if (found_path)
 			draw_path();
 	}
@@ -1098,7 +1104,6 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				BoardTypeInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-
 		if (MainMenuInstance) {
 			if (MainMenuInstance->credits) {
 				MainMenuInstance->reset();
@@ -1137,7 +1142,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-		if (BoardTypeInstance->random) {
+		else if (BoardTypeInstance->random) {
 			board_type = 1;
 			BoardTypeInstance->reset();
 
@@ -1148,7 +1153,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				AlgorithmMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-		if (BoardTypeInstance->back) {
+		else if (BoardTypeInstance->back) {
 			BoardTypeInstance->reset();
 
 			if (MainMenuInstance) {
@@ -1172,7 +1177,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-		if (AlgorithmMenuInstance->bidirectional) {
+		else if (AlgorithmMenuInstance->bidirectional) {
 			algorithm = 1;
 			start_RRT();
 			AlgorithmMenuInstance->reset();
@@ -1183,7 +1188,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-		if (AlgorithmMenuInstance->connect) {
+		else if (AlgorithmMenuInstance->connect) {
 			algorithm = 2;
 			start_RRT();
 			AlgorithmMenuInstance->reset();
@@ -1194,7 +1199,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 				VisualizationMenuInstance->SetVisibility(ESlateVisibility::Visible);
 			}
 		}
-		if (AlgorithmMenuInstance->other) {
+		else if (AlgorithmMenuInstance->other) {
 			algorithm = 3;
 			start_RRT();
 			AlgorithmMenuInstance->reset();

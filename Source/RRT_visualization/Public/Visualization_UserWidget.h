@@ -37,6 +37,7 @@ public:
 	void set_total_obstacles(int num_obstacles);
 	void set_node_path(int num_nodes);
 	void set_path_length(double length);
+	void set_time(double time);
 
 	//Algorithm type
 	UPROPERTY(meta = (BindWidget))
@@ -75,6 +76,8 @@ public:
 	class UTextBlock* TextBlock_NodesPathValue;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TextBlock_PathLengthValue;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TextBlock_TimeValue;
 
 	//Button exit
 	UPROPERTY(meta = (BindWidget))

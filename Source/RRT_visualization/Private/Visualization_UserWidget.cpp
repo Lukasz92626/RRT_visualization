@@ -61,3 +61,7 @@ void UVisualization_UserWidget::set_node_path(int num_nodes) {
 void UVisualization_UserWidget::set_path_length(double length) {
 	TextBlock_PathLengthValue->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), length)));
 }
+
+void UVisualization_UserWidget::set_time(double time) {
+	TextBlock_TimeValue->SetText(FText::FromString(FString::Printf(TEXT("%.4f"), time)));
+}
