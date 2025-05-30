@@ -1096,6 +1096,7 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPP_RRT_Controller::start_random_map_RRT, 0.1f, false);
 
 			MainMenuInstance->reset();
+			//MainMenuInstance->RemoveFromParent();
 
 			if (BoardTypeInstance) {
 				UE_LOG(LogTemp, Warning, TEXT("BoardTypeInstance Visible."));
@@ -1235,6 +1236,10 @@ void ACPP_RRT_Controller::Tick(float DeltaTime) {
 			delete rrt_class;
 			rrt_class = nullptr;
 		}
+	}
+
+	if (!cuboids.IsEmpty()) {
+		MainMenuInstance->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
